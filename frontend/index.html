@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CurfewMe</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+</head>
+<body>
+
+    <!-- 1. DAYTIME LOCKOUT SCREEN -->
+    <div id="day-screen" class="screen day-bg hidden">
+        <div class="lockout-container">
+            <h1 class="lockout-logo">CurfewMe</h1>
+            <p class="lockout-status">THE SYSTEM IS CURRENTLY LOCKED.</p>
+            <div id="countdown" class="countdown-timer">00:00:00</div>
+            <p class="lockout-subtext">Operational windows open exclusively between 7:00 PM and 4:00 AM.</p>
+        </div>
+    </div>
+
+    <!-- 2. NIGHTTIME COMMUNICATION ACTIVE SCREEN -->
+    <div id="night-screen" class="screen night-bg hidden">
+        
+        <!-- HEADER LAYOUT -->
+        <header id="main-app-header" class="app-header">
+            <div class="header-left-stack">
+                <span class="logo">CurfewMe</span>
+                <span id="user-alias" class="alias-name">Fetching...</span>
+            </div>
+            
+            <div class="neumorphic-toggle-container">
+                <!-- SVG Sun Icon Component -->
+                <svg class="toggle-icon sun-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="12" cy="12" r="5"></circle>
+                    <line x1="12" y1="1" x2="12" y2="3"></line>
+                    <line x1="12" y1="21" x2="12" y2="23"></line>
+                    <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                    <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                    <line x1="1" y1="12" x2="3" y2="12"></line>
+                    <line x1="21" y1="12" x2="23" y2="12"></line>
+                    <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                    <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                </svg>
+
+                <label class="tactile-switch">
+                    <input type="checkbox" id="theme-toggle-checkbox">
+                    <span class="pill-slider"></span>
+                </label>
+
+                <!-- SVG Moon Sparkle Icon Component -->
+                <svg class="toggle-icon moon-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79Z"></path>
+                    <path d="M19 3v4M17 5h4" stroke-width="1.5"></path>
+                </svg>
+            </div>
+        </header>
+
+        <!-- MAIN VIEWPORT PANELS -->
+        <main class="app-viewport">
+            
+            <!-- PANEL A: HOME DASHBOARD CHANNELS FEED -->
+            <section id="feed-view" class="view-panel">
+                <div id="rooms-container" class="groups-grid"></div>
+                <button id="open-modal-btn" class="floating-action-btn" title="Create or Join Channel">+</button>
+            </section>
+
+            <!-- PANEL B: LIVE STREAMING CHAT VIEW -->
+            <section id="chat-view" class="view-panel hidden">
+                <div class="chat-header">
+                    <!-- UPGRADED: Sleek minimalist back arrow button -->
+                    <button id="leave-chat-btn" class="back-navigation-btn" title="Back to Channels">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="19" y1="12" x2="5" y2="12"></line>
+                            <polyline points="12 19 5 12 12 5"></polyline>
+                        </svg>
+                    </button>
+                    <h2 id="current-room-title" class="active-room-heading">Channel: Loading...</h2>
+                </div>
+                
+                <div id="messages-container" class="chat-messages-stream">
+                    <div class="screenshot-overlay">NICE TRY. SABOOT KHATAM MEANS SABOOT KHATAM. 🤫</div>
+                </div>
+
+                <footer class="chat-input-dock">
+                    <button id="attach-btn" class="dock-action-btn" title="Attach Media Asset">📎</button>
+                    <input type="file" id="file-input" class="hidden" accept="image/*">
+                    <input type="text" id="chat-input" placeholder="Type an ephemeral message..." autocomplete="off">
+                    
+                    <!-- UPGRADED: High-contrast paper airplane icon button for message sending -->
+                    <button id="send-btn" class="dock-send-btn" title="Send Transmissions">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="22" y1="2" x2="11" y2="13"></line>
+                            <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                        </svg>
+                    </button>
+                </footer>
+            </section>
+        </main>
+    </div>
+
+    <!-- 3. DIALOG SYSTEM MODAL OVERLAYS -->
+    <div id="custom-modal" class="modal-overlay hidden">
+        <div class="modal-box">
+            <h3 id="modal-title">Select Action</h3>
+            <div class="modal-body" id="modal-content">
+                <div id="modal-choice-view" class="modal-split-actions">
+                    <button class="btn-primary" id="choice-create-btn">Create Group</button>
+                    <button class="btn-secondary" id="choice-join-btn">Join Group</button>
+                </div>
+                <input type="text" id="modal-input" class="hidden" autocomplete="off">
+                <div id="modal-error-text" class="modal-error-msg hidden">Invalid Code !!</div>
+                <div id="modal-success-view" class="hidden">
+                    <p class="success-subtext">Share this security token link with your group:</p>
+                    <div class="code-copy-wrapper">
+                        <span id="generated-code-display">000000</span>
+                        <button id="copy-code-btn" class="copy-action-btn">Copy Code</button>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-actions">
+                <button class="btn-secondary" id="modal-cancel">Cancel</button>
+                <button class="btn-primary hidden" id="modal-confirm">Confirm</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- NEW MODAL OVERLAY: DEMOCRATIC SYSTEM REPORT VALIDATION OVERLAY -->
+    <div id="report-modal" class="modal-overlay hidden">
+        <div class="modal-box text-left">
+            <h3>Report Participant</h3>
+            <p class="report-warning-body">
+                The user will be restricted for the day if 30% people in the group reports it.
+            </p>
+            <div class="modal-actions">
+                <button class="btn-secondary" id="report-cancel">Cancel</button>
+                <button class="btn-primary" id="report-confirm" style="background:#ff3333; color:#fff;">Confirm Report</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
