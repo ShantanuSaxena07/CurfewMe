@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,6 +8,7 @@
     <link rel="stylesheet" href="style.css">
     <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
 </head>
+
 <body>
 
     <!-- 1. DAYTIME LOCKOUT SCREEN -->
@@ -21,17 +23,18 @@
 
     <!-- 2. NIGHTTIME COMMUNICATION ACTIVE SCREEN -->
     <div id="night-screen" class="screen night-bg hidden">
-        
+
         <!-- HEADER LAYOUT -->
         <header id="main-app-header" class="app-header">
             <div class="header-left-stack">
                 <span class="logo">CurfewMe</span>
                 <span id="user-alias" class="alias-name">Fetching...</span>
             </div>
-            
+
             <div class="neumorphic-toggle-container">
                 <!-- SVG Sun Icon Component -->
-                <svg class="toggle-icon sun-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <svg class="toggle-icon sun-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                    stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                     <circle cx="12" cy="12" r="5"></circle>
                     <line x1="12" y1="1" x2="12" y2="3"></line>
                     <line x1="12" y1="21" x2="12" y2="23"></line>
@@ -49,7 +52,8 @@
                 </label>
 
                 <!-- SVG Moon Sparkle Icon Component -->
-                <svg class="toggle-icon moon-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <svg class="toggle-icon moon-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                    stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
                     <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79Z"></path>
                     <path d="M19 3v4M17 5h4" stroke-width="1.5"></path>
                 </svg>
@@ -58,7 +62,7 @@
 
         <!-- MAIN VIEWPORT PANELS -->
         <main class="app-viewport">
-            
+
             <!-- PANEL A: HOME DASHBOARD CHANNELS FEED -->
             <section id="feed-view" class="view-panel">
                 <div id="rooms-container" class="groups-grid"></div>
@@ -70,14 +74,15 @@
                 <div class="chat-header">
                     <!-- UPGRADED: Sleek minimalist back arrow button -->
                     <button id="leave-chat-btn" class="back-navigation-btn" title="Back to Channels">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                            stroke-linecap="round" stroke-linejoin="round">
                             <line x1="19" y1="12" x2="5" y2="12"></line>
                             <polyline points="12 19 5 12 12 5"></polyline>
                         </svg>
                     </button>
                     <h2 id="current-room-title" class="active-room-heading">Channel: Loading...</h2>
                 </div>
-                
+
                 <div id="messages-container" class="chat-messages-stream">
                     <div class="screenshot-overlay">NICE TRY. SABOOT KHATAM MEANS SABOOT KHATAM. 🤫</div>
                 </div>
@@ -86,10 +91,11 @@
                     <button id="attach-btn" class="dock-action-btn" title="Attach Media Asset">📎</button>
                     <input type="file" id="file-input" class="hidden" accept="image/*">
                     <input type="text" id="chat-input" placeholder="Type an ephemeral message..." autocomplete="off">
-                    
+
                     <!-- UPGRADED: High-contrast paper airplane icon button for message sending -->
                     <button id="send-btn" class="dock-send-btn" title="Send Transmissions">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                            stroke-linecap="round" stroke-linejoin="round">
                             <line x1="22" y1="2" x2="11" y2="13"></line>
                             <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
                         </svg>
@@ -134,11 +140,13 @@
             </p>
             <div class="modal-actions">
                 <button class="btn-secondary" id="report-cancel">Cancel</button>
-                <button class="btn-primary" id="report-confirm" style="background:#ff3333; color:#fff;">Confirm Report</button>
+                <button class="btn-primary" id="report-confirm" style="background:#ff3333; color:#fff;">Confirm
+                    Report</button>
             </div>
         </div>
     </div>
 
     <script src="app.js"></script>
 </body>
+
 </html>

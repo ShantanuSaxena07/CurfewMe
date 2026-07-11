@@ -797,7 +797,7 @@ body.light-theme .modal-box input {
     padding: 14px;
     font-size: 0.95rem;
     font-weight: 700;
-    border-radius: 10px;
+    border-radius: 30px;
     cursor: pointer;
     transition: opacity 150ms ease;
 }
@@ -833,7 +833,7 @@ body.light-theme .btn-primary {
 .modal-actions button {
     padding: 10px 20px;
     font-weight: 700;
-    border-radius: 8px;
+    border-radius: 30px;
     cursor: pointer;
     font-size: 0.88rem;
 }

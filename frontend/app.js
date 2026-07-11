@@ -245,7 +245,7 @@ DOM.choiceCreateBtn.addEventListener('click', () => {
     DOM.choiceView.classList.add('hidden');
     DOM.modalInput.classList.remove('hidden');
     DOM.modalConfirm.classList.remove('hidden');
-    DOM.modalInput.placeholder = "ENTER ROOM NAME (Max 20 chars)";
+    DOM.modalInput.placeholder = "Room Name";
     DOM.modalInput.maxLength = 20;
     DOM.modalInput.focus();
 });
@@ -256,7 +256,7 @@ DOM.choiceJoinBtn.addEventListener('click', () => {
     DOM.choiceView.classList.add('hidden');
     DOM.modalInput.classList.remove('hidden');
     DOM.modalConfirm.classList.remove('hidden');
-    DOM.modalInput.placeholder = "ENTER 6-DIGIT CODE";
+    DOM.modalInput.placeholder = "Enter 6-Digit Code";
     DOM.modalInput.maxLength = 6;
     DOM.modalInput.focus();
 });
