@@ -450,7 +450,7 @@ body.light-theme .floating-action-btn {
     background-color: var(--bg-secondary);
     border: 1px solid var(--border-color);
     border-radius: var(--radius-main);
-    padding: 24px;
+    padding: 15px;
     overflow-y: auto;
     position: relative;
     display: flex;
