@@ -1,4 +1,4 @@
-# curfew. 🤫
+# CurfewMe 🤫
 
 A production-grade, ultra-minimalist, ephemeral group chatting application engineered with absolute privacy and structural scarcity. 
 
@@ -7,7 +7,7 @@ A production-grade, ultra-minimalist, ephemeral group chatting application engin
 ---
 
 ## ⚡ The Architectural Concept
-`curfew.` is designed around engineered scarcity. The platform completely alters its state depending on the time of day:
+`CurfewMe` is designed around engineered scarcity. The platform completely alters its state depending on the time of day:
 *   **The Night Window (7:00 PM – 4:00 AM):** The system comes completely live. Users are assigned a dynamic, non-persistent, pop-culture alias and a matching iconic quote via the Google Gemini API. Group channels can be generated or accessed using unique 6-digit channel tokens.
 *   **The Daylight Lockout (4:01 AM – 6:59 PM):** The application interface locks down completely, displaying an elegant minimalist live countdown timer ticking down to the next evening.
 *   **The 4:00 AM Purge:** At exactly 04:00:00 AM server-time, an automated background execution job fires, instantly flushing all live chat logs, images, and streaming video binaries directly out of volatile server RAM memory. No hard-drive traces or tracking footprints remain.
