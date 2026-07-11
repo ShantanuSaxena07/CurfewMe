@@ -694,24 +694,36 @@ body.light-theme .dock-send-btn {
 
 /* --- SECURITY & CONTEXT OVERLAYS --- */
 .screenshot-overlay {
-    position: fixed; /* Enforces lock relative to browser window edge bounds, ignoring page scroll */
+    position: fixed;
     top: 0;
     left: 0;
-    width: 100vw; /* Spans absolute full screen horizontal viewport width */
-    height: 100vh; /* Spans absolute full screen vertical viewport height */
-    background: #000000 !important; /* Pure ink void shield blackout */
-    color: #FFFFFF;
-    display: none; /* Controlled dynamically by JavaScript window event listeners */
-    flex-direction: column;
+    width: 100vw;
+    height: 100vh;
+    background: #000000 !important;
+    display: none; /* Controlled dynamically via your window blur/focus event listeners */
     justify-content: center;
     align-items: center;
-    z-index: 999999 !important; /* Forces layout tracking order above chat windows, inputs, and modals */
-    font-weight: 800;
-    font-size: 1.15rem;
+    z-index: 999999 !important;
+}
+
+/* New clean layout helpers for multi-line hierarchy alignment */
+.privacy-message-box {
     text-align: center;
-    padding: 30px;
-    letter-spacing: 0.02em;
-    pointer-events: all; /* Blocks mouse clicks or accidental behind-the-scenes interface highlights */
+    font-family: sans-serif;
+}
+
+.privacy-title {
+    font-size: 1.5rem;
+    font-weight: 900;
+    color: #FFFFFF;
+    margin-bottom: 8px;
+    letter-spacing: -0.02em;
+}
+
+.privacy-subtitle {
+    font-size: 1rem;
+    font-weight: 400;
+    color: #888888;
 }
 
 .chat-messages-stream.frozen-lockdown {
