@@ -266,6 +266,5 @@ setInterval(async () => {
     }
 }, 1000);
 
-const PORT = process.env.PORT || 8080;
 // ...
 server.listen(PORT, () => console.log(`CurfewMe Secure Engine live on port ${PORT}`));
