@@ -340,7 +340,7 @@ async function joinActiveChannel(roomCode, roomName) {
     DOM.feedView.classList.add('hidden');
     DOM.chatView.classList.remove('hidden');
     DOM.currentRoomTitle.innerText = roomName || `Room: ${roomCode}`;
-    DOM.messagesContainer.innerHTML = '<div class="curfew-notice">Access Restricted</div>';
+    DOM.messagesContainer.innerHTML = '<div class="curfew-notice"></div>';
 
     try {
         const response = await fetch(`${SERVER_URL}/api/rooms/${roomCode}/messages`);
