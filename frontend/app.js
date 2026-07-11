@@ -4,7 +4,7 @@
 
 const SERVER_URL = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1"
     ? "http://localhost:8080"
-    : "https://curfew-backend.onrender.com"; // <-- Replace this with your actual live Render URL later
+    : "https://curfewme-backend.onrender.com"; // <-- Replace this with your actual live Render URL later
 
 const IS_DEV_MODE = true; 
 
