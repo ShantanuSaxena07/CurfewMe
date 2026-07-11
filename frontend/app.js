@@ -198,19 +198,26 @@ async function renderPersistentRoomTabs() {
 }
 
 // --- 🛠️ LEAVE GROUP FUNCTIONALITY WIRE ---
+const leaveModal = document.getElementById('leave-confirm-modal');
+const leaveModalCancel = document.getElementById('leave-modal-cancel');
+const leaveModalConfirm = document.getElementById('leave-modal-confirm');
+
 document.getElementById('leave-group-btn').addEventListener('click', () => {
     if (!currentRoomCode) return;
-    
-    const confirmLeave = confirm("Are you sure you want to leave this group permanently? The channel layout history will be wiped from your device dashboard.");
-    if (!confirmLeave) return;
+    leaveModal.classList.remove('hidden');
+});
 
-    let savedRooms = JSON.parse(localStorage.getItem('curfew_rooms_map')) || {};
+leaveModalCancel.addEventListener('click', () => {
+    leaveModal.classList.add('hidden');
+});
+
+leaveModalConfirm.addEventListener('click', () => {
+    leaveModal.classList.add('hidden');
     
-    // Delete the room mapping key for this specific user device instance
+    let savedRooms = JSON.parse(localStorage.getItem('curfew_rooms_map')) || {};
     delete savedRooms[currentRoomCode];
     localStorage.setItem('curfew_rooms_map', JSON.stringify(savedRooms));
 
-    // Force user navigation back out to dashboard
     DOM.chatView.classList.add('hidden');
     DOM.feedView.classList.remove('hidden');
     DOM.mainAppHeader.classList.remove('hidden');

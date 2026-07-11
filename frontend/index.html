@@ -27,6 +27,7 @@
         </div>
     </div>
 
+    
     <!-- 2. NIGHTTIME COMMUNICATION ACTIVE SCREEN -->
     <div id="night-screen" class="screen night-bg hidden">
 
@@ -164,6 +165,20 @@
             </div>
         </div>
     </div>
+
+    <div id="leave-confirm-modal" class="modal-overlay hidden">
+        <div class="modal-box text-left">
+            <h3>Leave Group Channel?</h3>
+            <p class="report-warning-body">
+                Are you sure you want to leave this group permanently? The channel layout history will be wiped from your device dashboard.
+            </p>
+            <div class="modal-actions">
+                <button class="btn-secondary" id="leave-modal-cancel">Cancel</button>
+                <button class="btn-primary" id="leave-modal-confirm" style="background:#ff3333; color:#fff;">Leave Group</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Pinned Viewport Security Shield Layer -->
     <div id="screenshot-overlay" class="screenshot-overlay">
         <div class="privacy-message-box">
