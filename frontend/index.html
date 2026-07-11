@@ -6,7 +6,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CurfewMe</title>
     <link rel="stylesheet" href="style.css">
-    <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+    <!-- High-reliability Cloudflare CDN alternative -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.5/socket.io.min.js"></script>
 </head>
 
 <body>
@@ -83,14 +84,12 @@
                     <h2 id="current-room-title" class="active-room-heading">Channel: Loading...</h2>
                 </div>
 
-                <div id="messages-container" class="chat-messages-stream">
-                    <div class="screenshot-overlay">NICE TRY. SABOOT KHATAM MEANS SABOOT KHATAM. 🤫</div>
-                </div>
+                
 
                 <footer class="chat-input-dock">
                     <button id="attach-btn" class="dock-action-btn" title="Attach Media Asset">📎</button>
                     <input type="file" id="file-input" class="hidden" accept="image/*">
-                    <input type="text" id="chat-input" placeholder="Type an ephemeral message..." autocomplete="off">
+                    <input type="text" id="chat-input" placeholder="Message..." autocomplete="off">
 
                     <!-- UPGRADED: High-contrast paper airplane icon button for message sending -->
                     <button id="send-btn" class="dock-send-btn" title="Send Transmissions">
