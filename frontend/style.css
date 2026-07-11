@@ -930,6 +930,6 @@ body.light-theme .code-copy-wrapper {
 
 .message:has(.image-message) {
     padding: 4px !important;
-    background: #1a1f26; /* Matches your premium dark layout bubble color */
+    background: #006aff; /* Matches your premium dark layout bubble color */
     overflow: hidden;
 }
