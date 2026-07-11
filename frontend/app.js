@@ -146,13 +146,20 @@ function saveChannelToPersistence(roomCode, roomName) {
     renderPersistentRoomTabs();
 }
 
-function renderPersistentRoomTabs() {
+// --- 3. PERSISTENT TABS GRID ---
+function saveChannelToPersistence(roomCode, roomName) {
+    let savedRooms = JSON.parse(localStorage.getItem('curfew_rooms_map')) || {};
+    savedRooms[roomCode] = roomName;
+    localStorage.setItem('curfew_rooms_map', JSON.stringify(savedRooms));
+    renderPersistentRoomTabs();
+}
+
+async function renderPersistentRoomTabs() {
     let savedRooms = JSON.parse(localStorage.getItem('curfew_rooms_map')) || {};
     DOM.roomsContainer.innerHTML = '';
 
     const keys = Object.keys(savedRooms);
 
-    // 1. UPGRADED: Clean, non-bordered empty message strip statement
     if (keys.length === 0) {
         DOM.roomsContainer.innerHTML = `
             <p class="empty-channels-notice">
@@ -161,8 +168,9 @@ function renderPersistentRoomTabs() {
         return;
     }
 
-    // 2. UPGRADED: Full-viewport scale cards printing separated sub-code prefixes
-    keys.forEach(code => {
+    const clientSig = getOrCreateFingerprintToken();
+
+    for (const code of keys) {
         const card = document.createElement('div');
         card.className = 'group-card';
         card.innerHTML = `
@@ -172,10 +180,44 @@ function renderPersistentRoomTabs() {
             </div>
             <span class="status-dot active"></span>
         `;
-        card.addEventListener('click', () => joinActiveChannel(code, savedRooms[code]));
+
+        try {
+            // Check ban state dynamically from server before mounting click mechanics
+            const check = await fetch(`${SERVER_URL}/api/verify-room/${code}?sig=${clientSig}`);
+            if (check.status === 403) {
+                card.classList.add('banned-curfew'); // Hard lock interactions visually and physically
+            } else {
+                card.addEventListener('click', () => joinActiveChannel(code, savedRooms[code]));
+            }
+        } catch (err) {
+            card.addEventListener('click', () => joinActiveChannel(code, savedRooms[code]));
+        }
+
         DOM.roomsContainer.appendChild(card);
-    });
+    }
 }
+
+// --- 🛠️ LEAVE GROUP FUNCTIONALITY WIRE ---
+document.getElementById('leave-group-btn').addEventListener('click', () => {
+    if (!currentRoomCode) return;
+    
+    const confirmLeave = confirm("Are you sure you want to leave this group permanently? The channel layout history will be wiped from your device dashboard.");
+    if (!confirmLeave) return;
+
+    let savedRooms = JSON.parse(localStorage.getItem('curfew_rooms_map')) || {};
+    
+    // Delete the room mapping key for this specific user device instance
+    delete savedRooms[currentRoomCode];
+    localStorage.setItem('curfew_rooms_map', JSON.stringify(savedRooms));
+
+    // Force user navigation back out to dashboard
+    DOM.chatView.classList.add('hidden');
+    DOM.feedView.classList.remove('hidden');
+    DOM.mainAppHeader.classList.remove('hidden');
+    
+    currentRoomCode = null;
+    renderPersistentRoomTabs();
+});
 
 // --- 4. SOCKET COMMUNICATIONS LINK ---
 function initializeRealTimeSocket() {

@@ -117,6 +117,7 @@ app.get('/api/verify-room/:code', async (req, res) => {
         if (clientSig) {
             const isBanned = await BanList.findOne({ roomCode: activeRoom.roomCode, fingerprintId: clientSig });
             if (isBanned) {
+                // Returns 403 error blocking both frontend fetch grids and manual direct room switches
                 return res.status(403).json({ error: "You are banned from this group for today." });
             }
         }

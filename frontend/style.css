@@ -921,16 +921,54 @@ body.light-theme .code-copy-wrapper {
     }
 }
 
-/* Ensure the image inside scales cleanly up to the edge */
-.message.image-message img {
-    display: block;
-    width: 100%;
-    height: auto;
-    border-radius: 8px;      /* Slightly smaller radius so it sits perfectly inside */
+/* --- CLASSIC MINIMALIST LEAVE GROUP BUTTON --- */
+.leave-group-action-btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    background: transparent;
+    color: #FF3B30; /* Sleek indicator red */
+    border: 1px solid rgba(255, 59, 48, 0.2);
+    padding: 6px 14px;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 200ms ease;
 }
 
-.message:has(.image-message) {
-    padding: 4px !important;
-    background: #006aff; /* Matches your premium dark layout bubble color */
-    overflow: hidden;
+.leave-group-action-btn:hover {
+    background: rgba(255, 59, 48, 0.08);
+    border-color: rgba(255, 59, 48, 0.4);
+    transform: translateY(-1px);
 }
+
+.leave-group-action-btn svg {
+    display: inline-block;
+    vertical-align: middle;
+}
+
+/* --- FUNCTIONALLY UNCLICKABLE & VISIBLY BANNED CARDS --- */
+.group-card.banned-curfew {
+    opacity: 0.35;
+    cursor: not-allowed !important;
+    pointer-events: none; /* Kills all click triggers instantly */
+    filter: grayscale(0.8);
+    position: relative;
+    border-color: rgba(255, 59, 48, 0.2) !important;
+}
+
+.group-card.banned-curfew::after {
+    content: "🔒 Locked Today";
+    position: absolute;
+    right: 56px;
+    font-size: 0.72rem;
+    color: #FF3B30;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    background: rgba(255, 59, 48, 0.1);
+    padding: 2px 8px;
+    border-radius: 4px;
+}
+

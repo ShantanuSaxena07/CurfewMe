@@ -7,7 +7,7 @@
     <title>CurfewMe</title>
     <!-- Pinned Browser Tab Icon (Favicon) Configuration -->
     <link rel="icon" type="image/png" href="favicon.png">
-    
+
     <!-- Optional: Apple Touch Icon for users who save the web app to their iPhone home screen -->
     <link rel="apple-touch-icon" href="favicon.png">
     <link rel="stylesheet" href="style.css">
@@ -77,21 +77,34 @@
 
             <!-- PANEL B: LIVE STREAMING CHAT VIEW -->
             <section id="chat-view" class="view-panel hidden">
-                <div class="chat-header">
-                    <!-- UPGRADED: Sleek minimalist back arrow button -->
-                    <button id="leave-chat-btn" class="back-navigation-btn" title="Back to Channels">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
-                            stroke-linecap="round" stroke-linejoin="round">
-                            <line x1="19" y1="12" x2="5" y2="12"></line>
-                            <polyline points="12 19 5 12 12 5"></polyline>
+                <div class="chat-header" style="justify-content: space-between; width: 100%;">
+                    <div style="display: flex; align-items: center; gap: 20px;">
+                        <!-- UPGRADED: Sleek minimalist back arrow button -->
+                        <button id="leave-chat-btn" class="back-navigation-btn" title="Back to Channels">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                                stroke-linecap="round" stroke-linejoin="round">
+                                <line x1="19" y1="12" x2="5" y2="12"></line>
+                                <polyline points="12 19 5 12 12 5"></polyline>
+                            </svg>
+                        </button>
+                        <h2 id="current-room-title" class="active-room-heading">Channel: Loading...</h2>
+                    </div>
+
+                    <!-- 🛠️ ELEGANT LEAVE GROUP BUTTON -->
+                    <button id="leave-group-btn" class="leave-group-action-btn" title="Leave Group Permanently">
+                        <svg viewBox="0 0 24 24" width="15" height="15" stroke="currentColor" stroke-width="2.5"
+                            fill="none" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                            <polyline points="16 17 21 12 16 7"></polyline>
+                            <line x1="21" y1="12" x2="9" y2="12"></line>
                         </svg>
+                        Leave Group
                     </button>
-                    <h2 id="current-room-title" class="active-room-heading">Channel: Loading...</h2>
                 </div>
 
-                <div id="messages-container" class="chat-messages-stream">
+                <div id="messages-container" class="chat-messages-stream"></div>
 
-                </div>
+                <!-- ... Rest of input dock footer stays the same ... -->
 
                 <footer class="chat-input-dock">
                     <button id="attach-btn" class="dock-action-btn" title="Attach Media Asset">📎</button>
