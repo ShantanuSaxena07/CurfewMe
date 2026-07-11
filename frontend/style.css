@@ -927,3 +927,9 @@ body.light-theme .code-copy-wrapper {
     height: auto;
     border-radius: 8px;      /* Slightly smaller radius so it sits perfectly inside */
 }
+
+.message:has(.image-message) {
+    padding: 4px !important;
+    background: #1a1f26; /* Matches your premium dark layout bubble color */
+    overflow: hidden;
+}

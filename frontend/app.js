@@ -6,12 +6,12 @@ const SERVER_URL = window.location.hostname === "localhost" || window.location.h
     ? "http://localhost:8080"
     : "https://curfewme-backend.onrender.com"; // <-- Replace this with your actual live Render URL later
 
-const IS_DEV_MODE = true; 
+const IS_DEV_MODE = true;
 
 let socket = null;
 let currentRoomCode = null;
 let currentUser = { alias: '' };
-let isFetchingIdentity = false; 
+let isFetchingIdentity = false;
 let targetReportContext = null; // Memory node holding user coordinates during moderation alerts
 
 const DOM = {
@@ -50,7 +50,7 @@ const DOM = {
     reportConfirm: document.getElementById('report-confirm')
 };
 
-let currentModalState = 'choice'; 
+let currentModalState = 'choice';
 
 // --- 1. RUNTIME TIMELINE ENGINE ---
 function monitorCurfew() {
@@ -90,8 +90,8 @@ function calculateCountdown(now) {
 function lockDownApp() {
     DOM.dayScreen.classList.remove('hidden');
     DOM.nightScreen.classList.add('hidden');
-    DOM.roomsContainer.innerHTML = ''; 
-    localStorage.removeItem('curfew_device_fingerprint'); 
+    DOM.roomsContainer.innerHTML = '';
+    localStorage.removeItem('curfew_device_fingerprint');
     currentUser = { alias: '' };
     currentRoomCode = null;
     if (socket) {
@@ -112,11 +112,11 @@ function getOrCreateFingerprintToken() {
 
 async function fetchIdentitySecurely() {
     if (isFetchingIdentity || currentUser.alias) return;
-    isFetchingIdentity = true; 
+    isFetchingIdentity = true;
     DOM.userAlias.innerText = "Fetching...";
-    
+
     const clientSignatureHash = getOrCreateFingerprintToken();
-    
+
     try {
         const response = await fetch(`${SERVER_URL}/api/get-identity`, {
             method: 'POST',
@@ -125,10 +125,10 @@ async function fetchIdentitySecurely() {
         });
         if (!response.ok) throw new Error(`HTTP error: ${response.status}`);
         const data = await response.json();
-        
+
         currentUser.alias = data.name;
-        DOM.userAlias.innerText = currentUser.alias; 
-        renderPersistentRoomTabs(); 
+        DOM.userAlias.innerText = currentUser.alias;
+        renderPersistentRoomTabs();
     } catch (err) {
         currentUser.alias = "Tony Stark";
         DOM.userAlias.innerText = currentUser.alias;
@@ -151,7 +151,7 @@ function renderPersistentRoomTabs() {
     DOM.roomsContainer.innerHTML = '';
 
     const keys = Object.keys(savedRooms);
-    
+
     // 1. UPGRADED: Clean, non-bordered empty message strip statement
     if (keys.length === 0) {
         DOM.roomsContainer.innerHTML = `
@@ -184,7 +184,7 @@ function initializeRealTimeSocket() {
 
     socket.on('force-curfew-lock', () => lockDownApp());
     socket.on('receive-message', (msg) => displayMessage(msg));
-    
+
     socket.on('message-burned', ({ messageId }) => {
         const targetedMsgCard = document.getElementById(messageId);
         if (targetedMsgCard) {
@@ -201,7 +201,7 @@ function initializeRealTimeSocket() {
             DOM.feedView.classList.remove('hidden');
             DOM.mainAppHeader.classList.remove('hidden');
             currentRoomCode = null;
-            
+
             resetModalLayout();
             DOM.customModal.classList.remove('hidden');
             DOM.modalTitle.innerText = "Evicted";
@@ -220,7 +220,7 @@ function resetModalLayout() {
     DOM.modalInput.classList.add('hidden');
     DOM.successView.classList.add('hidden');
     DOM.modalConfirm.classList.add('hidden');
-    DOM.modalErrorText.classList.add('hidden'); 
+    DOM.modalErrorText.classList.add('hidden');
     DOM.modalConfirm.innerText = "Confirm";
     DOM.modalInput.value = '';
     DOM.modalInput.removeAttribute('maxlength');
@@ -283,7 +283,7 @@ DOM.modalConfirm.addEventListener('click', async () => {
             DOM.modalConfirm.innerText = "Enter Room";
 
             saveChannelToPersistence(data.roomCode, data.roomName);
-            
+
             DOM.copyCodeBtn.onclick = () => {
                 navigator.clipboard.writeText(data.roomCode);
                 DOM.copyCodeBtn.innerText = "Copied!";
@@ -294,14 +294,14 @@ DOM.modalConfirm.addEventListener('click', async () => {
             DOM.modalErrorText.innerText = err.message || "Failed to create channel.";
             DOM.modalErrorText.classList.remove('hidden');
         }
-    } 
+    }
     else if (currentModalState === 'join-input') {
         if (!/^\d{6}$/.test(rawVal)) {
             DOM.modalErrorText.innerText = "Invalid Code !!";
             DOM.modalErrorText.classList.remove('hidden');
             return;
         }
-        
+
         try {
             // 4. DEMOCRATIC BAN SAFETY SYSTEM: Transmit client device hash key string on entry checks
             const clientSig = getOrCreateFingerprintToken();
@@ -335,7 +335,7 @@ DOM.modalConfirm.addEventListener('click', async () => {
 // --- 6. NAVIGATION NAVIGATION SYSTEM ---
 async function joinActiveChannel(roomCode, roomName) {
     currentRoomCode = roomCode;
-    
+
     DOM.mainAppHeader.classList.add('hidden');
     DOM.feedView.classList.add('hidden');
     DOM.chatView.classList.remove('hidden');
@@ -371,7 +371,7 @@ document.getElementById('leave-chat-btn').addEventListener('click', () => {
     DOM.feedView.classList.remove('hidden');
     currentRoomCode = null;
     DOM.mainAppHeader.classList.remove('hidden');
-    renderPersistentRoomTabs(); 
+    renderPersistentRoomTabs();
 });
 
 // --- 7. FILE PROCESSING TRANSMISSIONS CONTROLLERS ---
@@ -454,7 +454,7 @@ DOM.fileInput.addEventListener('change', (e) => {
 
                 let width = imgElement.width;
                 let height = imgElement.height;
-                const MAX_DIMENSION = 800; 
+                const MAX_DIMENSION = 800;
 
                 if (width > height) {
                     if (width > MAX_DIMENSION) {
@@ -495,15 +495,16 @@ function displayMessage(msg) {
     const isMe = (msg.senderSig === getOrCreateFingerprintToken() || msg.sender === currentUser.alias);
     const msgWrapper = document.createElement('div');
     msgWrapper.className = `msg-wrapper ${isMe ? 'outgoing' : 'incoming'}`;
-    msgWrapper.id = msg.id; 
-    
+    msgWrapper.id = msg.id;
+
     let bubbleContent = '';
     if (msg.type === 'image') {
-        bubbleContent = `<img src="${msg.text}" class="msg-media" alt="Attachment">`;
+        // Added 'image-message' wrapper class directly to style the broad border framework
+        bubbleContent = `<img src="${msg.text}" class="msg-media image-message" alt="Attachment" style="display: block; max-width: 100%; height: auto; border-radius: 8px;">`;
     } else {
         bubbleContent = linkifyText(msg.text);
     }
-    
+
     // 4. DEMOCRATIC BAN MODERATION MODULE UI STAMP: Append reporting handle triggers natively into lines
     msgWrapper.innerHTML = `
         <div class="msg-meta" data-sig="${msg.senderSig}" data-name="${msg.sender}">
@@ -518,9 +519,9 @@ function displayMessage(msg) {
         let burnTimer = null;
 
         const startChargingBurn = (e) => {
-            if (e.type === 'touchstart') e.preventDefault(); 
+            if (e.type === 'touchstart') e.preventDefault();
             msgWrapper.classList.add('charging');
-            
+
             // 5. UPGRADED: Burn activation window altered from 2 seconds down to exactly 1 second (1000ms)
             burnTimer = setTimeout(() => {
                 if (socket && currentRoomCode) {
@@ -544,11 +545,11 @@ function displayMessage(msg) {
         msgWrapper.addEventListener('touchstart', startChargingBurn, { passive: false });
         msgWrapper.addEventListener('touchend', clearChargingBurn);
         msgWrapper.addEventListener('touchcancel', clearChargingBurn);
-    } 
+    }
     // Incoming Message Long Press / Click (Report Event)
     else {
         const metaNode = msgWrapper.querySelector('.msg-meta');
-        
+
         // Setup simple click trigger on user meta header line to reveal report prompt box
         metaNode.addEventListener('click', () => {
             targetReportContext = {
@@ -573,7 +574,7 @@ DOM.reportCancel.addEventListener('click', () => {
 
 DOM.reportConfirm.addEventListener('click', async () => {
     if (!targetReportContext) return;
-    
+
     try {
         const response = await fetch(`${SERVER_URL}/api/report-user`, {
             method: 'POST',
@@ -582,13 +583,13 @@ DOM.reportConfirm.addEventListener('click', async () => {
         });
         const data = await response.json();
         DOM.reportModal.classList.add('hidden');
-        
+
         if (response.ok && data.evicted) {
             alert(`User ${targetReportContext.targetName} has crossed the 30% threshold and has been restricted from the group.`);
         } else {
             alert(data.message || "Report filed successfully.");
         }
-    } catch(err) {
+    } catch (err) {
         console.error("Moderation communication crash:", err);
     } finally {
         targetReportContext = null;
@@ -602,15 +603,15 @@ DOM.chatInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') dispa
 window.addEventListener('blur', () => {
     const overlay = document.querySelector('.screenshot-overlay');
     if (overlay && !DOM.chatView.classList.contains('hidden')) {
-        overlay.style.display = 'flex'; 
-        DOM.messagesContainer.classList.add('frozen-lockdown'); 
+        overlay.style.display = 'flex';
+        DOM.messagesContainer.classList.add('frozen-lockdown');
     }
 });
 window.addEventListener('focus', () => {
     const overlay = document.querySelector('.screenshot-overlay');
     if (overlay) {
         overlay.style.display = 'none';
-        DOM.messagesContainer.classList.remove('frozen-lockdown'); 
+        DOM.messagesContainer.classList.remove('frozen-lockdown');
     }
 });
 window.addEventListener('keydown', (e) => {
@@ -626,10 +627,10 @@ function initializeApplicationTheme() {
     const savedTheme = localStorage.getItem('curfew_visual_theme');
     if (savedTheme === 'light') {
         document.body.classList.add('light-theme');
-        DOM.themeToggleCheckbox.checked = false; 
+        DOM.themeToggleCheckbox.checked = false;
     } else {
         document.body.classList.remove('light-theme');
-        DOM.themeToggleCheckbox.checked = true; 
+        DOM.themeToggleCheckbox.checked = true;
     }
 }
 
