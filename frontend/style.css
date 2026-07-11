@@ -913,3 +913,17 @@ body.light-theme .code-copy-wrapper {
         transform: translateX(4px);
     }
 }
+
+.message.image-message {
+    padding: 4px !important; /* Drastically cuts down the broad border padding */
+    background: #1a1f26;     /* Matches your theme's dark bubble background */
+    overflow: hidden;        /* Prevents the image corners from spilling out */
+}
+
+/* Ensure the image inside scales cleanly up to the edge */
+.message.image-message img {
+    display: block;
+    width: 100%;
+    height: auto;
+    border-radius: 8px;      /* Slightly smaller radius so it sits perfectly inside */
+}
