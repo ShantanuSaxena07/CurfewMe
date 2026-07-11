@@ -694,23 +694,24 @@ body.light-theme .dock-send-btn {
 
 /* --- SECURITY & CONTEXT OVERLAYS --- */
 .screenshot-overlay {
-    position: absolute;
+    position: fixed; /* Enforces lock relative to browser window edge bounds, ignoring page scroll */
     top: 0;
     left: 0;
-    width: 100%;
-    height: 100%;
-    background: #000000;
+    width: 100vw; /* Spans absolute full screen horizontal viewport width */
+    height: 100vh; /* Spans absolute full screen vertical viewport height */
+    background: #000000 !important; /* Pure ink void shield blackout */
     color: #FFFFFF;
-    display: none;
+    display: none; /* Controlled dynamically by JavaScript window event listeners */
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    z-index: 9999;
+    z-index: 999999 !important; /* Forces layout tracking order above chat windows, inputs, and modals */
     font-weight: 800;
     font-size: 1.15rem;
     text-align: center;
     padding: 30px;
     letter-spacing: 0.02em;
+    pointer-events: all; /* Blocks mouse clicks or accidental behind-the-scenes interface highlights */
 }
 
 .chat-messages-stream.frozen-lockdown {
