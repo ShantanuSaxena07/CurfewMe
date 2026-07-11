@@ -106,24 +106,32 @@ app.post('/api/create-room', async (req, res) => {
     }
 });
 
-// --- STRICT ROOM JOINING CHECK VALIDATOR ---
+// --- STRICT ROOM JOINING CHECK VALIDATOR (CLEAN CONSOLE VERSION) ---
 app.get('/api/verify-room/:code', async (req, res) => {
-    if (!checkCurfewStatus()) return res.status(403).json({ error: "Curfew active." });
+    // If curfew is active, return a successful status containing the curfew notice flag
+    if (!checkCurfewStatus()) {
+        return res.json({ allowed: false, curfewActive: true, error: "Curfew is active." });
+    }
+    
     const clientSig = req.query.sig;
     try {
         const activeRoom = await Room.findOne({ roomCode: req.params.code.trim() });
-        if (!activeRoom) return res.status(404).json({ error: "Invalid Code !!" });
+        if (!activeRoom) {
+            return res.json({ allowed: false, error: "Invalid Code !!" });
+        }
         
         if (clientSig) {
             const isBanned = await BanList.findOne({ roomCode: activeRoom.roomCode, fingerprintId: clientSig });
             if (isBanned) {
-                // Returns 403 error blocking both frontend fetch grids and manual direct room switches
-                return res.status(403).json({ error: "You are banned from this group for today." });
+                // Return status true but banned true to prevent throwing console errors
+                return res.json({ allowed: false, isBanned: true, error: "You are banned from this group for today." });
             }
         }
-        res.json({ valid: true, roomCode: activeRoom.roomCode, roomName: activeRoom.roomName });
+        
+        // Everything checks out perfectly
+        res.json({ allowed: true, valid: true, roomCode: activeRoom.roomCode, roomName: activeRoom.roomName });
     } catch (error) {
-        res.status(500).json({ error: "Database verification exception." });
+        res.json({ allowed: false, error: "Database verification exception." });
     }
 });
 

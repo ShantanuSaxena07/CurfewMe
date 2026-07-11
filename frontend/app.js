@@ -182,10 +182,12 @@ async function renderPersistentRoomTabs() {
         `;
 
         try {
-            // Check ban state dynamically from server before mounting click mechanics
-            const check = await fetch(`${SERVER_URL}/api/verify-room/${code}?sig=${clientSig}`);
-            if (check.status === 403) {
-                card.classList.add('banned-curfew'); // Hard lock interactions visually and physically
+            const response = await fetch(`${SERVER_URL}/api/verify-room/${code}?sig=${clientSig}`);
+            const data = await response.json();
+            
+            // Check the status flag directly from the clean payload response
+            if (data.isBanned) {
+                card.classList.add('banned-curfew');
             } else {
                 card.addEventListener('click', () => joinActiveChannel(code, savedRooms[code]));
             }
@@ -352,13 +354,12 @@ DOM.modalConfirm.addEventListener('click', async () => {
         }
 
         try {
-            // 4. DEMOCRATIC BAN SAFETY SYSTEM: Transmit client device hash key string on entry checks
             const clientSig = getOrCreateFingerprintToken();
             const response = await fetch(`${SERVER_URL}/api/verify-room/${rawVal}?sig=${clientSig}`);
             const data = await response.json();
 
-            if (!response.ok) {
-                // If backend states user is blocked, print specific ban statement warning
+            // Read the clean validation flag inside the payload instead of checking HTTP status codes
+            if (!data.allowed) {
                 DOM.modalErrorText.innerText = data.error || "Invalid Code !!";
                 DOM.modalErrorText.classList.remove('hidden');
                 return;
