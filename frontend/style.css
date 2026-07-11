@@ -916,7 +916,7 @@ body.light-theme .code-copy-wrapper {
 
 .message.image-message {
     padding: 4px !important; /* Drastically cuts down the broad border padding */
-    background: #1a1f26;     /* Matches your theme's dark bubble background */
+    background: #006aff;     /* Matches your theme's dark bubble background */
     overflow: hidden;        /* Prevents the image corners from spilling out */
 }
 
