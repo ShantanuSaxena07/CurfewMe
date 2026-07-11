@@ -914,12 +914,6 @@ body.light-theme .code-copy-wrapper {
     }
 }
 
-.message.image-message {
-    padding: 4px !important; /* Drastically cuts down the broad border padding */
-    background: #006aff;     /* Matches your theme's dark bubble background */
-    overflow: hidden;        /* Prevents the image corners from spilling out */
-}
-
 /* Ensure the image inside scales cleanly up to the edge */
 .message.image-message img {
     display: block;
