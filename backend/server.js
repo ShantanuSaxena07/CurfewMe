@@ -256,24 +256,39 @@ io.on('connection', (socket) => {
     });
 });
 
-// --- AUTOMATED 4:00 AM PURGE INSTANTANEOUS CLEANUP JOB ---
+// --- AUTOMATED CRON-STYLE PURGE PIPELINE (IST ENGINE ON) ---
+let lastPurgeDate = null;
+
 setInterval(async () => {
     if (IS_DEV_MODE) return; 
+    
+    // 1. Fetch current time based on the server's configured environment timezone (Ensure TZ variable is Asia/Kolkata on Render!)
     const now = new Date();
-    if (now.getHours() === CLOSE_HOUR && now.getMinutes() === 0 && now.getSeconds() === 0) {
-        console.log("EXECUTION WIPE ACTIVE: SYSTEM FLUSH ENGINE ON.");
+    const currentHour = now.getHours();
+    const todayString = now.toDateString();
+
+    // 2. Trigger the wipe if it's the 4 AM hour and we haven't already successfully executed a purge today
+    if (currentHour === CLOSE_HOUR && lastPurgeDate !== todayString) {
+        console.log("🚀 CURFEW PURGE TRIGGERED: Initiating dynamic database cleanse...");
         try {
+            // Drop everything to refresh identities, remove bans, clear logs, and delete rooms
             await Room.deleteMany({});
             await Message.deleteMany({});
             await Identity.deleteMany({});
             await Report.deleteMany({});
             await BanList.deleteMany({});
+            
+            // Broadcast lock signal to any lingering socket instances
             io.emit('force-curfew-lock');
+            
+            // Mark today's execution as complete so it doesn't loop continuously during the 4 AM hour
+            lastPurgeDate = todayString; 
+            console.log("🎯 SUCCESS: All ephemeral database entries completely wiped for the new day.");
         } catch (err) {
-            console.error("CRITICAL PURGE ERROR:", err.message);
+            console.error("❌ CRITICAL PURGE ENGINE ERROR:", err.message);
         }
     }
-}, 1000);
+}, 10000); // Checks every 10 seconds (resource efficient and impossible to skip)
 
 // ...
 server.listen(PORT, () => console.log(`CurfewMe Secure Engine live on port ${PORT}`));
