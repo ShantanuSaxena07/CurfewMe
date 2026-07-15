@@ -255,7 +255,7 @@ async function renderPersistentRoomTabs() {
 UI.openSidebarBtn.addEventListener('click', () => {
     UI.sidebar.classList.remove('drawer-closed');
     UI.sidebar.classList.add('drawer-open');
-});
+}); // 🛠️ FIX: Ensure this closing bracket and parenthesis are present!
 
 UI.closeSidebarBtn.addEventListener('click', () => {
     UI.sidebar.classList.remove('drawer-open');
