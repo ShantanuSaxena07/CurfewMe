@@ -35,9 +35,9 @@ function checkCurfewStatus() {
     return (currentHour >= OPEN_HOUR && currentHour < CLOSE_HOUR);
 }
 
-// --- DATABASE CONNECTIVITY ---
-mongoose.connect(process.env.MONGODB_URI)
-    .then(() => console.log('Successfully established secure connection to MongoDB Atlas.'))
+// --- DATABASE CONNECTIVITY (FORCE EXPLICIT TARGET) ---
+mongoose.connect(process.env.MONGODB_URI, { dbName: 'Curfew' })
+    .then(() => console.log('Successfully established secure connection to MongoDB Atlas [Target: Curfew].'))
     .catch(err => console.error('CRITICAL DATABASE ERROR:', err.message));
 
 // --- MONGOOSE SCHEMAS ---
