@@ -1,18 +1,50 @@
 /**
- * curfew. - High-End Real-Time Frontend Engine with Democratic Report Capabilities
+ * curfew. - High-End Real-Time Frontend Engine with Integrated Group & Private DM Capabilities
  */
 
 const SERVER_URL = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1"
     ? "http://localhost:8080"
-    : "https://curfewme-backend.onrender.com"; // <-- Replace this with your actual live Render URL later
+    : "https://curfewme-backend.onrender.com";
 
-const IS_DEV_MODE = true;
+const IS_DEV_MODE = false;
 
 let socket = null;
 let currentRoomCode = null;
 let currentUser = { alias: '' };
+let currentActiveViewTab = "groups"; // Tracks dashboard context: "groups" vs "dms"
+let activeLongPressContextUser = null; 
 let isFetchingIdentity = false;
-let targetReportContext = null; // Memory node holding user coordinates during moderation alerts
+
+const UI = {
+    loaderOverlay: document.getElementById('global-loader-overlay'),
+    sidebar: document.getElementById('app-hamburger-sidebar'),
+    openSidebarBtn: document.getElementById('sidebar-open-toggle'),
+    closeSidebarBtn: document.getElementById('close-sidebar-btn'),
+    tabGroups: document.getElementById('tab-trigger-groups'),
+    tabDMs: document.getElementById('tab-trigger-dms'),
+    // Context DM naming dialog
+    dmModal: document.getElementById('dm-naming-modal'),
+    dmInput: document.getElementById('dm-custom-name-input'),
+    dmCancel: document.getElementById('dm-name-cancel'),
+    dmConfirm: document.getElementById('dm-name-confirm'),
+    // Identity Splash Card
+    splashModal: document.getElementById('identity-splash-modal'),
+    splashHero: document.getElementById('splash-hero-name'),
+    splashPowers: document.getElementById('splash-powers-text'),
+    splashDesc: document.getElementById('splash-desc-text'),
+    splashClose: document.getElementById('splash-close-btn'),
+    // Feedback panel elements
+    feedbackModal: document.getElementById('feedback-modal'),
+    feedbackText: document.getElementById('feedback-textbox-area'),
+    feedbackCancel: document.getElementById('feedback-cancel-btn'),
+    feedbackSubmit: document.getElementById('feedback-submit-btn'),
+    // Context Actions Menu Sheet
+    contextModal: document.getElementById('context-action-modal'),
+    contextTitle: document.getElementById('context-action-title'),
+    contextDM: document.getElementById('context-trigger-dm'),
+    contextReport: document.getElementById('context-trigger-report'),
+    contextCancel: document.getElementById('context-trigger-cancel')
+};
 
 const DOM = {
     mainAppHeader: document.getElementById('main-app-header'),
@@ -44,13 +76,10 @@ const DOM = {
     fileInput: document.getElementById('file-input'),
     modalErrorText: document.getElementById('modal-error-text'),
     themeToggleCheckbox: document.getElementById('theme-toggle-checkbox'),
-    // Moderation Nodes
     reportModal: document.getElementById('report-modal'),
     reportCancel: document.getElementById('report-cancel'),
     reportConfirm: document.getElementById('report-confirm')
 };
-
-let currentModalState = 'choice';
 
 // --- 1. RUNTIME TIMELINE ENGINE ---
 function monitorCurfew() {
@@ -100,11 +129,11 @@ function lockDownApp() {
     }
 }
 
-// --- 2. IDENTITY SYSTEM ---
+// --- 2. IDENTITY SYSTEM & FULL SCREEN INITIALIZATION SPLASH ---
 function getOrCreateFingerprintToken() {
     let fingerprint = localStorage.getItem('curfew_device_fingerprint');
     if (!fingerprint) {
-        fingerprint = 'dev_sig_' + Math.random().toString(36).substr(2, 9) + Date.now().toString(36);
+        fingerprint = 'sig_' + Math.random().toString(36).substr(2, 9) + Date.now().toString(36);
         localStorage.setItem('curfew_device_fingerprint', fingerprint);
     }
     return fingerprint;
@@ -113,7 +142,10 @@ function getOrCreateFingerprintToken() {
 async function fetchIdentitySecurely() {
     if (isFetchingIdentity || currentUser.alias) return;
     isFetchingIdentity = true;
-    DOM.userAlias.innerText = "Fetching...";
+    
+    // Unveil premium dynamic full screen loader overlay panel
+    UI.loaderOverlay.style.display = "flex";
+    UI.loaderOverlay.style.opacity = "1";
 
     const clientSignatureHash = getOrCreateFingerprintToken();
 
@@ -123,48 +155,68 @@ async function fetchIdentitySecurely() {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ fingerprintId: clientSignatureHash })
         });
-        if (!response.ok) throw new Error(`HTTP error: ${response.status}`);
         const data = await response.json();
 
         currentUser.alias = data.name;
         DOM.userAlias.innerText = currentUser.alias;
+
+        // If user newly joins today, pull open the aesthetic character splash profile modal sheet
+        if (data.isNew) {
+            UI.splashHero.innerText = data.name;
+            UI.splashPowers.innerText = data.powers || "Unknown Variant";
+            UI.splashDesc.innerText = data.description || "No cosmic matrix database logs.";
+            UI.splashModal.classList.remove('hidden');
+        }
+
         renderPersistentRoomTabs();
     } catch (err) {
         currentUser.alias = "Tony Stark";
         DOM.userAlias.innerText = currentUser.alias;
         renderPersistentRoomTabs();
     } finally {
-        if (currentUser.alias) isFetchingIdentity = false;
+        isFetchingIdentity = false;
+        // Smoothly fade loader screen matrix away
+        setTimeout(() => {
+            UI.loaderOverlay.style.opacity = "0";
+            setTimeout(() => { UI.loaderOverlay.style.display = "none"; }, 400);
+        }, 600);
     }
 }
 
-// --- 3. PERSISTENT TABS GRID ---
-function saveChannelToPersistence(roomCode, roomName) {
-    let savedRooms = JSON.parse(localStorage.getItem('curfew_rooms_map')) || {};
-    savedRooms[roomCode] = roomName;
-    localStorage.setItem('curfew_rooms_map', JSON.stringify(savedRooms));
+// --- 3. DYNAMIC DASHBOARD MIGRATION SWITCH CONTROLS ---
+UI.tabGroups.addEventListener('click', () => {
+    currentActiveViewTab = "groups";
+    UI.tabGroups.classList.add('active-tab');
+    UI.tabDMs.classList.remove('active-tab');
+    UI.openSidebarBtn.style.display = "flex";
+    DOM.openModalBtn.classList.remove('hidden');
     renderPersistentRoomTabs();
-}
+});
 
-// --- 3. PERSISTENT TABS GRID ---
-function saveChannelToPersistence(roomCode, roomName) {
-    let savedRooms = JSON.parse(localStorage.getItem('curfew_rooms_map')) || {};
+UI.tabDMs.addEventListener('click', () => {
+    currentActiveViewTab = "dms";
+    UI.tabDMs.classList.add('active-tab');
+    UI.tabGroups.classList.remove('active-tab');
+    DOM.openModalBtn.classList.add('hidden');
+    renderPersistentRoomTabs();
+});
+
+function saveChannelToPersistence(roomCode, roomName, isPrivateDM = false) {
+    const storageKey = isPrivateDM ? 'curfew_dms_map' : 'curfew_rooms_map';
+    let savedRooms = JSON.parse(localStorage.getItem(storageKey)) || {};
     savedRooms[roomCode] = roomName;
-    localStorage.setItem('curfew_rooms_map', JSON.stringify(savedRooms));
+    localStorage.setItem(storageKey, JSON.stringify(savedRooms));
     renderPersistentRoomTabs();
 }
 
 async function renderPersistentRoomTabs() {
-    let savedRooms = JSON.parse(localStorage.getItem('curfew_rooms_map')) || {};
     DOM.roomsContainer.innerHTML = '';
-
+    const storageKey = (currentActiveViewTab === "dms") ? 'curfew_dms_map' : 'curfew_rooms_map';
+    let savedRooms = JSON.parse(localStorage.getItem(storageKey)) || {};
     const keys = Object.keys(savedRooms);
 
     if (keys.length === 0) {
-        DOM.roomsContainer.innerHTML = `
-            <p class="empty-channels-notice">
-                Tap the button below to join or create a channel
-            </p>`;
+        DOM.roomsContainer.innerHTML = `<p class="empty-channels-notice">No conversation records in this stack today.</p>`;
         return;
     }
 
@@ -176,16 +228,16 @@ async function renderPersistentRoomTabs() {
         card.innerHTML = `
             <div class="card-title-stack">
                 <span class="group-name">${savedRooms[code]}</span>
-                <span class="group-code-sub">Code : - ${code}</span>
+                <span class="group-code-sub">${currentActiveViewTab === 'dms' ? 'Private Session Room' : 'Code : - ' + code}</span>
             </div>
             <span class="status-dot active"></span>
         `;
 
         try {
+            // Read 200 clean layout validations directly without triggering red DevTools errors
             const response = await fetch(`${SERVER_URL}/api/verify-room/${code}?sig=${clientSig}`);
             const data = await response.json();
             
-            // Check the status flag directly from the clean payload response
             if (data.isBanned) {
                 card.classList.add('banned-curfew');
             } else {
@@ -199,36 +251,140 @@ async function renderPersistentRoomTabs() {
     }
 }
 
-// --- 🛠️ LEAVE GROUP FUNCTIONALITY WIRE ---
-const leaveModal = document.getElementById('leave-confirm-modal');
-const leaveModalCancel = document.getElementById('leave-modal-cancel');
-const leaveModalConfirm = document.getElementById('leave-modal-confirm');
-
-document.getElementById('leave-group-btn').addEventListener('click', () => {
-    if (!currentRoomCode) return;
-    leaveModal.classList.remove('hidden');
+// --- 4. NAVIGATION SLIDING MENUS DRAWER (DASHBOARD ONLY) ---
+UI.openSidebarBtn.addEventListener('click', () => {
+    UI.sidebar.classList.remove('drawer-closed');
+    UI.sidebar.classList.add('drawer-open');
 });
 
-leaveModalCancel.addEventListener('click', () => {
-    leaveModal.classList.add('hidden');
+UI.closeSidebarBtn.addEventListener('click', () => {
+    UI.sidebar.classList.remove('drawer-open');
+    UI.sidebar.classList.add('drawer-closed');
 });
 
-leaveModalConfirm.addEventListener('click', () => {
-    leaveModal.classList.add('hidden');
+UI.sidebarTriggerFeedback.addEventListener('click', () => {
+    UI.sidebar.classList.add('drawer-closed');
+    UI.feedbackModal.classList.remove('hidden');
+});
+
+UI.feedbackCancel.addEventListener('click', () => UI.feedbackModal.classList.add('hidden'));
+
+UI.feedbackSubmit.addEventListener('click', async () => {
+    const feedbackBodyText = UI.feedbackText.value.trim();
+    if (!feedbackBodyText) return;
     
-    let savedRooms = JSON.parse(localStorage.getItem('curfew_rooms_map')) || {};
-    delete savedRooms[currentRoomCode];
-    localStorage.setItem('curfew_rooms_map', JSON.stringify(savedRooms));
-
-    DOM.chatView.classList.add('hidden');
-    DOM.feedView.classList.remove('hidden');
-    DOM.mainAppHeader.classList.remove('hidden');
-    
-    currentRoomCode = null;
-    renderPersistentRoomTabs();
+    try {
+        await fetch(`${SERVER_URL}/api/feedback`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ text: feedbackBodyText, alias: currentUser.alias })
+        });
+        alert("Your configuration review was securely transmitted.");
+        UI.feedbackText.value = "";
+        UI.feedbackModal.classList.add('hidden');
+    } catch (err) {
+        console.error(err);
+    }
 });
 
-// --- 4. SOCKET COMMUNICATIONS LINK ---
+UI.sidebarTriggerAbout.addEventListener('click', () => {
+    alert("CurfewMe v2.0 - Premium Experiential Social Web Architecture Stack Engine.");
+});
+
+// --- 5. TIMED LONG PRESS META CAPABILITIES MATRIX ---
+function registerLongPressUserMeta(metaNode, messageSenderSig, messageSenderName) {
+    let pressTimer = null;
+
+    const fireOptionDialogue = () => {
+        if (messageSenderSig === getOrCreateFingerprintToken()) return;
+        activeLongPressContextUser = { sig: messageSenderSig, name: messageSenderName };
+        UI.contextTitle.innerText = `Target Node: ${messageSenderName}`;
+        UI.contextModal.classList.remove('hidden');
+    };
+
+    metaNode.addEventListener('mousedown', () => { pressTimer = setTimeout(fireOptionDialogue, 500); });
+    metaNode.addEventListener('mouseup', () => { clearTimeout(pressTimer); });
+    metaNode.addEventListener('mouseleave', () => { clearTimeout(pressTimer); });
+    metaNode.addEventListener('touchstart', () => { pressTimer = setTimeout(fireOptionDialogue, 500); });
+    metaNode.addEventListener('touchend', () => { clearTimeout(pressTimer); });
+}
+
+UI.contextCancel.addEventListener('click', () => {
+    UI.contextModal.classList.add('hidden');
+    activeLongPressContextUser = null;
+});
+
+UI.contextDM.addEventListener('click', () => {
+    UI.contextModal.classList.add('hidden');
+    UI.dmInput.value = "";
+    UI.dmModal.classList.remove('hidden');
+});
+
+UI.dmCancel.addEventListener('click', () => UI.dmModal.classList.add('hidden'));
+
+UI.dmConfirm.addEventListener('click', async () => {
+    const customDMName = UI.dmInput.value.trim();
+    if (!customDMName) return;
+
+    UI.dmModal.classList.add('hidden');
+    const creatorSig = getOrCreateFingerprintToken();
+
+    try {
+        const response = await fetch(`${SERVER_URL}/api/create-dm`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                targetSig: activeLongPressContextUser.sig,
+                roomName: customDMName,
+                creatorSig: creatorSig
+            })
+        });
+        const data = await response.json();
+        
+        saveChannelToPersistence(data.roomCode, data.roomName, true);
+        
+        currentActiveViewTab = "dms";
+        UI.tabDMs.classList.add('active-tab');
+        UI.tabGroups.classList.remove('active-tab');
+        
+        joinActiveChannel(data.roomCode, data.roomName);
+    } catch (err) {
+        console.error(err);
+    }
+});
+
+UI.contextReport.addEventListener('click', async () => {
+    if (!activeLongPressContextUser || !currentRoomCode) return;
+    
+    UI.contextModal.classList.add('hidden');
+    const confirmReport = confirm(`Log a democratic moderation report against ${activeLongPressContextUser.name}?`);
+    if (!confirmReport) return;
+
+    try {
+        const response = await fetch(`${SERVER_URL}/api/report-user`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                roomCode: currentRoomCode,
+                targetSig: activeLongPressContextUser.sig,
+                reporterSig: getOrCreateFingerprintToken()
+            })
+        });
+        const data = await response.json();
+
+        if (data.evicted) {
+            alert(`User ${activeLongPressContextUser.name} has crossed the 30% limit and has been restricted from the platform lounge space.`);
+        } else {
+            alert(data.message || "Democratic report filed successfully.");
+        }
+    } catch (err) {
+        console.error(err);
+    } finally {
+        activeLongPressContextUser = null;
+    }
+});
+
+// --- 6. SOCKET COMMUNICATIONS DECK ---
 function initializeRealTimeSocket() {
     if (typeof io === 'undefined') return;
     socket = io(SERVER_URL);
@@ -244,7 +400,6 @@ function initializeRealTimeSocket() {
         }
     });
 
-    // 4. MODERATION LISTENER: Force-evict users if they cross the ban margin rule
     socket.on('user-banned-broadcast', ({ roomCode, fingerprintId }) => {
         const currentLocalSig = localStorage.getItem('curfew_device_fingerprint');
         if (currentRoomCode === roomCode && currentLocalSig === fingerprintId) {
@@ -263,7 +418,132 @@ function initializeRealTimeSocket() {
     });
 }
 
-// --- 5. COMPONENT MODAL DIALOG CONTROLLER ---
+// --- 7. INTEGRATED VIEWPORT ENGINE & INTERACTION FLOWS ---
+async function joinActiveChannel(roomCode, roomName) {
+    currentRoomCode = roomCode;
+
+    UI.openSidebarBtn.style.display = "none";
+    DOM.mainAppHeader.classList.add('hidden');
+    DOM.feedView.classList.add('hidden');
+    DOM.chatView.classList.remove('hidden');
+    DOM.currentRoomTitle.innerText = roomName || `Room: ${roomCode}`;
+    DOM.messagesContainer.innerHTML = '';
+
+    // If channel lane is an isolated DM block, strip the group configuration leave layouts away completely
+    if (roomCode.startsWith('dm_')) {
+        document.getElementById('leave-group-btn').style.display = "none";
+    } else {
+        document.getElementById('leave-group-btn').style.display = "block";
+    }
+
+    try {
+        const response = await fetch(`${SERVER_URL}/api/rooms/${roomCode}/messages`);
+        if (response.ok) {
+            const dailyLogsHistory = await response.json();
+            dailyLogsHistory.forEach(msg => {
+                displayMessage({
+                    id: msg._id,
+                    sender: msg.sender,
+                    senderSig: msg.senderSig, 
+                    text: msg.text,
+                    type: msg.type
+                });
+            });
+        }
+    } catch (err) {
+        console.warn(err.message);
+    }
+
+    if (socket) {
+        socket.emit('join-room', { roomCode: currentRoomCode, userAlias: currentUser.alias });
+    }
+}
+
+function displayMessage(msg) {
+    const isMe = (msg.senderSig === getOrCreateFingerprintToken() || msg.sender === currentUser.alias);
+    const msgWrapper = document.createElement('div');
+    msgWrapper.className = `msg-wrapper ${isMe ? 'outgoing' : 'incoming'}`;
+    msgWrapper.id = msg.id;
+
+    let bubbleContent = '';
+    if (msg.type === 'image') {
+        bubbleContent = `<img src="${msg.text}" class="msg-media image-message" alt="Attachment" style="display: block; max-width: 100%; height: auto; border-radius: 8px;">`;
+    } else {
+        bubbleContent = linkifyText(msg.text);
+    }
+
+    msgWrapper.innerHTML = `
+        <div class="msg-meta" data-sig="${msg.senderSig}" data-name="${msg.sender}">
+            ${isMe ? 'You (' + msg.sender + ')' : msg.sender}
+        </div>
+        <div class="msg-bubble">${bubbleContent}</div>
+    `;
+
+    const metaNode = msgWrapper.querySelector('.msg-meta');
+    registerLongPressUserMeta(metaNode, msg.senderSig, msg.sender);
+
+    if (isMe) {
+        let burnTimer = null;
+        const startChargingBurn = (e) => {
+            if (e.type === 'touchstart') e.preventDefault();
+            msgWrapper.classList.add('charging');
+            burnTimer = setTimeout(() => {
+                if (socket && currentRoomCode) {
+                    socket.emit('delete-message', { roomCode: currentRoomCode, messageId: msg.id });
+                }
+                clearChargingBurn();
+            }, 1000);
+        };
+        const clearChargingBurn = () => {
+            msgWrapper.classList.remove('charging');
+            if (burnTimer) { clearTimeout(burnTimer); burnTimer = null; }
+        };
+        msgWrapper.addEventListener('mousedown', startChargingBurn);
+        msgWrapper.addEventListener('mouseup', clearChargingBurn);
+        msgWrapper.addEventListener('mouseleave', clearChargingBurn);
+        msgWrapper.addEventListener('touchstart', startChargingBurn, { passive: false });
+        msgWrapper.addEventListener('touchend', clearChargingBurn);
+    }
+
+    DOM.messagesContainer.appendChild(msgWrapper);
+    DOM.messagesContainer.scrollTop = DOM.messagesContainer.scrollHeight;
+}
+
+document.getElementById('leave-chat-btn').addEventListener('click', () => {
+    DOM.chatView.classList.add('hidden');
+    DOM.feedView.classList.remove('hidden');
+    DOM.mainAppHeader.classList.remove('hidden');
+    if (currentActiveViewTab === "groups") {
+        UI.openSidebarBtn.style.display = "flex";
+    }
+    currentRoomCode = null;
+    renderPersistentRoomTabs();
+});
+
+// --- 8. GAMIFIED DYNAMIC SYSTEM MELTDOWN RESET ("THE BURN WARNING LOOP") ---
+function checkSystemMeltdownWarning() {
+    if (IS_DEV_MODE) return;
+    const now = new Date();
+    
+    // Check if we are inside the terminal window: 3:55 AM to 3:59 AM IST
+    if (now.getHours() === 3 && now.getMinutes() >= 55) {
+        const secondsLeft = 60 - now.getSeconds() + ((59 - now.getMinutes()) * 60);
+        
+        let countdownOverlay = document.getElementById('meltdown-alert-banner');
+        if (!countdownOverlay) {
+            countdownOverlay = document.createElement('div');
+            countdownOverlay.id = 'meltdown-alert-banner';
+            countdownOverlay.style = "position: fixed; top: 90px; left: 0; width: 100%; background: #FF3B30; color: #fff; text-align: center; padding: 10px; font-weight: 800; font-size: 0.9rem; z-index: 9999; letter-spacing: 0.05em; text-transform: uppercase; box-shadow: 0 4px 12px rgba(255,59,48,0.3);";
+            document.body.appendChild(countdownOverlay);
+        }
+        countdownOverlay.innerText = `🚨 WARNING: Data purge in ${secondsLeft}s. Exchange details before connections burn!`;
+    } else {
+        const activeBanner = document.getElementById('meltdown-alert-banner');
+        if (activeBanner) activeBanner.remove();
+    }
+}
+
+// --- 9. MODAL INTERFACES LAYOUT CONTROL BASE ---
 function resetModalLayout() {
     currentModalState = 'choice';
     DOM.modalTitle.innerText = "Select Action";
@@ -281,14 +561,9 @@ DOM.openModalBtn.addEventListener('click', () => {
     resetModalLayout();
     DOM.customModal.classList.remove('hidden');
 });
-
-DOM.modalCancel.addEventListener('click', () => {
-    DOM.customModal.classList.add('hidden');
-});
-
-DOM.modalInput.addEventListener('input', () => {
-    DOM.modalErrorText.classList.add('hidden');
-});
+DOM.modalCancel.addEventListener('click', () => DOM.customModal.classList.add('hidden'));
+DOM.modalInput.addEventListener('input', () => DOM.modalErrorText.classList.add('hidden'));
+UI.splashClose.addEventListener('click', () => UI.splashModal.classList.add('hidden'));
 
 DOM.choiceCreateBtn.addEventListener('click', () => {
     currentModalState = 'create-input';
@@ -333,14 +608,13 @@ DOM.modalConfirm.addEventListener('click', async () => {
             DOM.generatedCodeDisplay.innerText = data.roomCode;
             DOM.modalConfirm.innerText = "Enter Room";
 
-            saveChannelToPersistence(data.roomCode, data.roomName);
+            saveChannelToPersistence(data.roomCode, data.roomName, false);
 
             DOM.copyCodeBtn.onclick = () => {
                 navigator.clipboard.writeText(data.roomCode);
                 DOM.copyCodeBtn.innerText = "Copied!";
                 setTimeout(() => { DOM.copyCodeBtn.innerText = "Copy Code"; }, 2000);
             };
-
         } catch (err) {
             DOM.modalErrorText.innerText = err.message || "Failed to create channel.";
             DOM.modalErrorText.classList.remove('hidden');
@@ -358,17 +632,15 @@ DOM.modalConfirm.addEventListener('click', async () => {
             const response = await fetch(`${SERVER_URL}/api/verify-room/${rawVal}?sig=${clientSig}`);
             const data = await response.json();
 
-            // Read the clean validation flag inside the payload instead of checking HTTP status codes
             if (!data.allowed) {
                 DOM.modalErrorText.innerText = data.error || "Invalid Code !!";
                 DOM.modalErrorText.classList.remove('hidden');
                 return;
             }
 
-            saveChannelToPersistence(data.roomCode, data.roomName);
+            saveChannelToPersistence(data.roomCode, data.roomName, false);
             DOM.customModal.classList.add('hidden');
             joinActiveChannel(data.roomCode, data.roomName);
-
         } catch (err) {
             DOM.modalErrorText.innerText = "Invalid Code !!";
             DOM.modalErrorText.classList.remove('hidden');
@@ -382,49 +654,25 @@ DOM.modalConfirm.addEventListener('click', async () => {
     }
 });
 
-// --- 6. NAVIGATION NAVIGATION SYSTEM ---
-async function joinActiveChannel(roomCode, roomName) {
-    currentRoomCode = roomCode;
-
-    DOM.mainAppHeader.classList.add('hidden');
-    DOM.feedView.classList.add('hidden');
-    DOM.chatView.classList.remove('hidden');
-    DOM.currentRoomTitle.innerText = roomName || `Room: ${roomCode}`;
-    DOM.messagesContainer.innerHTML = '<div class="curfew-notice"></div>';
-
-    try {
-        const response = await fetch(`${SERVER_URL}/api/rooms/${roomCode}/messages`);
-        if (response.ok) {
-            const dailyLogsHistory = await response.json();
-            dailyLogsHistory.forEach(msg => {
-                displayMessage({
-                    id: msg._id,
-                    sender: msg.sender,
-                    senderSig: msg.senderSig, // Map hardware key signatures safely down template
-                    text: msg.text,
-                    type: msg.type
-                });
-            });
-        }
-    } catch (err) {
-        console.warn("Unable to sync chat history components:", err.message);
-    }
-
-    if (socket) {
-        socket.emit('join-room', { roomCode: currentRoomCode, userAlias: currentUser.alias });
-    }
-}
-
-DOM.leaveChatBtn.replaceWith(DOM.leaveChatBtn.cloneNode(true));
-document.getElementById('leave-chat-btn').addEventListener('click', () => {
+const leaveModal = document.getElementById('leave-confirm-modal');
+document.getElementById('leave-group-btn').addEventListener('click', () => {
+    if (!currentRoomCode) return;
+    leaveModal.classList.remove('hidden');
+});
+document.getElementById('leave-modal-cancel').addEventListener('click', () => leaveModal.classList.add('hidden'));
+document.getElementById('leave-modal-confirm').addEventListener('click', () => {
+    leaveModal.classList.add('hidden');
+    let savedRooms = JSON.parse(localStorage.getItem('curfew_rooms_map')) || {};
+    delete savedRooms[currentRoomCode];
+    localStorage.setItem('curfew_rooms_map', JSON.stringify(savedRooms));
     DOM.chatView.classList.add('hidden');
     DOM.feedView.classList.remove('hidden');
-    currentRoomCode = null;
     DOM.mainAppHeader.classList.remove('hidden');
+    currentRoomCode = null;
     renderPersistentRoomTabs();
 });
 
-// --- 7. FILE PROCESSING TRANSMISSIONS CONTROLLERS ---
+// --- 10. INPUT ASSET TRANSMISSIONS DECK ---
 function linkifyText(text) {
     const urlPattern = /(\b(https?|ftp|file):\/\/[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|])/ig;
     return text.replace(urlPattern, '<a href="$1" target="_blank" class="msg-link">$1</a>');
@@ -433,49 +681,22 @@ function linkifyText(text) {
 function dispatchOutgoingMessage() {
     const text = DOM.chatInput.value.trim();
     if (!text || !currentRoomCode) return;
-
     const clientSig = getOrCreateFingerprintToken();
-
     socket.emit('send-message', {
         roomCode: currentRoomCode,
         sender: currentUser.alias,
-        senderSig: clientSig, // Include hardware tracking signature variables inside frame
+        senderSig: clientSig,
         text: text,
         type: 'text'
     });
-
     DOM.chatInput.value = '';
 }
 
 DOM.attachBtn.addEventListener('click', () => DOM.fileInput.click());
-
 DOM.fileInput.addEventListener('change', (e) => {
     const file = e.target.files[0];
     if (!file || !currentRoomCode) return;
-
-    if (file.type.startsWith('video/')) {
-        resetModalLayout();
-        DOM.customModal.classList.remove('hidden');
-        DOM.modalTitle.innerText = "Upload Blocked";
-        DOM.modalErrorText.innerText = "Video transmissions are disabled to protect security logs.";
-        DOM.modalErrorText.classList.remove('hidden');
-        DOM.fileInput.value = '';
-        return;
-    }
-
-    const fileSizeMB = file.size / (1024 * 1024);
-
-    if (file.type === 'image/gif') {
-        if (fileSizeMB > 3) {
-            resetModalLayout();
-            DOM.customModal.classList.remove('hidden');
-            DOM.modalTitle.innerText = "GIF Too Large";
-            DOM.modalErrorText.innerText = "Animated GIFs must be under 3MB to optimize room performance.";
-            DOM.modalErrorText.classList.remove('hidden');
-            DOM.fileInput.value = '';
-            return;
-        }
-
+    if (file.type.startsWith('image/')) {
         const reader = new FileReader();
         reader.onload = function (event) {
             const clientSig = getOrCreateFingerprintToken();
@@ -488,193 +709,29 @@ DOM.fileInput.addEventListener('change', (e) => {
             });
         };
         reader.readAsDataURL(file);
-        DOM.fileInput.value = '';
-        return;
-    }
-
-    if (file.type.startsWith('image/')) {
-        const reader = new FileReader();
-        reader.onload = function (event) {
-            const imgElement = new Image();
-            imgElement.src = event.target.result;
-
-            imgElement.onload = function () {
-                const canvas = document.createElement('canvas');
-                const ctx = canvas.getContext('2d');
-
-                let width = imgElement.width;
-                let height = imgElement.height;
-                const MAX_DIMENSION = 800;
-
-                if (width > height) {
-                    if (width > MAX_DIMENSION) {
-                        height *= MAX_DIMENSION / width;
-                        width = MAX_DIMENSION;
-                    }
-                } else {
-                    if (height > MAX_DIMENSION) {
-                        width *= MAX_DIMENSION / height;
-                        height = MAX_DIMENSION;
-                    }
-                }
-
-                canvas.width = width;
-                canvas.height = height;
-                ctx.drawImage(imgElement, 0, 0, width, height);
-
-                const compressedBase64 = canvas.toDataURL('image/jpeg', 0.5);
-                const clientSig = getOrCreateFingerprintToken();
-
-                socket.emit('send-message', {
-                    roomCode: currentRoomCode,
-                    sender: currentUser.alias,
-                    senderSig: clientSig,
-                    text: compressedBase64,
-                    type: 'image'
-                });
-            };
-        };
-        reader.readAsDataURL(file);
-        DOM.fileInput.value = '';
-        return;
     }
     DOM.fileInput.value = '';
 });
 
-function displayMessage(msg) {
-    const isMe = (msg.senderSig === getOrCreateFingerprintToken() || msg.sender === currentUser.alias);
-    const msgWrapper = document.createElement('div');
-    msgWrapper.className = `msg-wrapper ${isMe ? 'outgoing' : 'incoming'}`;
-    msgWrapper.id = msg.id;
-
-    let bubbleContent = '';
-    if (msg.type === 'image') {
-        // Added 'image-message' wrapper class directly to style the broad border framework
-        bubbleContent = `<img src="${msg.text}" class="msg-media image-message" alt="Attachment" style="display: block; max-width: 100%; height: auto; border-radius: 8px;">`;
-    } else {
-        bubbleContent = linkifyText(msg.text);
-    }
-
-    // 4. DEMOCRATIC BAN MODERATION MODULE UI STAMP: Append reporting handle triggers natively into lines
-    msgWrapper.innerHTML = `
-        <div class="msg-meta" data-sig="${msg.senderSig}" data-name="${msg.sender}">
-            ${isMe ? 'You (' + msg.sender + ')' : msg.sender}
-            ${!isMe ? '<span class="report-inline-trigger">Report</span>' : ''}
-        </div>
-        <div class="msg-bubble">${bubbleContent}</div>
-    `;
-
-    // Outgoing Message Long Press (Burn Event)
-    if (isMe) {
-        let burnTimer = null;
-
-        const startChargingBurn = (e) => {
-            if (e.type === 'touchstart') e.preventDefault();
-            msgWrapper.classList.add('charging');
-
-            // 5. UPGRADED: Burn activation window altered from 2 seconds down to exactly 1 second (1000ms)
-            burnTimer = setTimeout(() => {
-                if (socket && currentRoomCode) {
-                    socket.emit('delete-message', { roomCode: currentRoomCode, messageId: msg.id });
-                }
-                clearChargingBurn();
-            }, 1000);
-        };
-
-        const clearChargingBurn = () => {
-            msgWrapper.classList.remove('charging');
-            if (burnTimer) {
-                clearTimeout(burnTimer);
-                burnTimer = null;
-            }
-        };
-
-        msgWrapper.addEventListener('mousedown', startChargingBurn);
-        msgWrapper.addEventListener('mouseup', clearChargingBurn);
-        msgWrapper.addEventListener('mouseleave', clearChargingBurn);
-        msgWrapper.addEventListener('touchstart', startChargingBurn, { passive: false });
-        msgWrapper.addEventListener('touchend', clearChargingBurn);
-        msgWrapper.addEventListener('touchcancel', clearChargingBurn);
-    }
-    // Incoming Message Long Press / Click (Report Event)
-    else {
-        const metaNode = msgWrapper.querySelector('.msg-meta');
-
-        // Setup simple click trigger on user meta header line to reveal report prompt box
-        metaNode.addEventListener('click', () => {
-            targetReportContext = {
-                roomCode: currentRoomCode,
-                targetSig: msg.senderSig,
-                targetName: msg.sender,
-                reporterSig: getOrCreateFingerprintToken()
-            };
-            DOM.reportModal.classList.remove('hidden');
-        });
-    }
-
-    DOM.messagesContainer.appendChild(msgWrapper);
-    DOM.messagesContainer.scrollTop = DOM.messagesContainer.scrollHeight;
-}
-
-// Wire Moderation Dialog button event pathways
-DOM.reportCancel.addEventListener('click', () => {
-    DOM.reportModal.classList.add('hidden');
-    targetReportContext = null;
-});
-
-DOM.reportConfirm.addEventListener('click', async () => {
-    if (!targetReportContext) return;
-
-    try {
-        const response = await fetch(`${SERVER_URL}/api/report-user`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(targetReportContext)
-        });
-        const data = await response.json();
-        DOM.reportModal.classList.add('hidden');
-
-        if (response.ok && data.evicted) {
-            alert(`User ${targetReportContext.targetName} has crossed the 30% threshold and has been restricted from the group.`);
-        } else {
-            alert(data.message || "Report filed successfully.");
-        }
-    } catch (err) {
-        console.error("Moderation communication crash:", err);
-    } finally {
-        targetReportContext = null;
-    }
-});
-
-DOM.sendBtn.addEventListener('click', dispatchOutgoingMessage);
-DOM.chatInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') dispatchOutgoingMessage(); });
-
-// --- 8. DEFENSIVE CANVAS ANOMALY BLOCKS ---
+// --- 11. SECURITY & CANVAS ANOMALY BLOCKS ---
 window.addEventListener('blur', () => {
-    // 🛠️ DEV MODE BYPASS: Do not hide the chat UI when inspecting elements or switching windows during testing
     if (IS_DEV_MODE) return;
-
     const overlay = document.querySelector('.screenshot-overlay');
     if (overlay && !DOM.chatView.classList.contains('hidden')) {
         overlay.style.display = 'flex';
         DOM.messagesContainer.classList.add('frozen-lockdown');
     }
 });
-
 window.addEventListener('focus', () => {
     if (IS_DEV_MODE) return;
-
     const overlay = document.querySelector('.screenshot-overlay');
     if (overlay) {
         overlay.style.display = 'none';
         DOM.messagesContainer.classList.remove('frozen-lockdown');
     }
 });
-
 window.addEventListener('keydown', (e) => {
-    // 🛠️ DEV MODE BYPASS: Prevent blurring the screen if you press common screenshot or system hotkeys in development
     if (IS_DEV_MODE) return;
-
     if ((e.metaKey && e.shiftKey) || (e.ctrlKey && e.shiftKey) || e.key === 'PrintScreen') {
         const stream = DOM.messagesContainer;
         stream.style.filter = 'blur(40px)';
@@ -682,7 +739,7 @@ window.addEventListener('keydown', (e) => {
     }
 });
 
-// --- 9. PILL THEME TOGGLE ROUTINE ---
+// --- 12. VISUAL STYLE DECK INITIALIZATION ---
 function initializeApplicationTheme() {
     const savedTheme = localStorage.getItem('curfew_visual_theme');
     if (savedTheme === 'light') {
@@ -693,7 +750,6 @@ function initializeApplicationTheme() {
         DOM.themeToggleCheckbox.checked = true;
     }
 }
-
 DOM.themeToggleCheckbox.addEventListener('change', () => {
     if (DOM.themeToggleCheckbox.checked) {
         document.body.classList.remove('light-theme');
@@ -704,6 +760,12 @@ DOM.themeToggleCheckbox.addEventListener('change', () => {
     }
 });
 
+DOM.sendBtn.addEventListener('click', dispatchOutgoingMessage);
+DOM.chatInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') dispatchOutgoingMessage(); });
+
 initializeApplicationTheme();
-setInterval(monitorCurfew, 1000);
+setInterval(() => {
+    monitorCurfew();
+    checkSystemMeltdownWarning();
+}, 1000);
 monitorCurfew();

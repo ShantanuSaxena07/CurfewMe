@@ -41,13 +41,38 @@ mongoose.connect(process.env.MONGODB_URI, { dbName: 'Curfew' })
     .catch(err => console.error('CRITICAL DATABASE ERROR:', err.message));
 
 // --- MONGOOSE SCHEMAS ---
+
+// Room Schema handles both open group channels and private custom-labeled DMs
 const RoomSchema = new mongoose.Schema({
     roomCode: { type: String, required: true, unique: true, index: true },
     roomName: { type: String, required: true },
+    isDM: { type: Boolean, default: false },
+    // Tracks the device tokens allowed to enter this specific conversation channel
+    participants: [{ type: String }], 
     createdAt: { type: Date, default: Date.now }
 });
 const Room = mongoose.model('Room', RoomSchema);
 
+// Identity Schema expanded to contain character description properties
+const IdentitySchema = new mongoose.Schema({
+    fingerprintId: { type: String, required: true, unique: true, index: true },
+    alias: { type: String, required: true },
+    oneLiner: { type: String, required: true },
+    description: { type: String, default: "" },
+    powers: { type: String, default: "" },
+    assignedAt: { type: Date, default: Date.now }
+});
+const Identity = mongoose.model('Identity', IdentitySchema);
+
+// Feedback Storage Collection Model (Developer Viewing Only)
+const FeedbackSchema = new mongoose.Schema({
+    senderAlias: { type: String, default: "Anonymous" },
+    text: { type: String, required: true },
+    timestamp: { type: Date, default: Date.now }
+});
+const Feedback = mongoose.model('Feedback', FeedbackSchema);
+
+// Messages, Reports, and BanList remain the same as your current implementation
 const MessageSchema = new mongoose.Schema({
     roomCode: { type: String, required: true, index: true },
     sender: { type: String, required: true },
@@ -145,27 +170,38 @@ app.get('/api/rooms/:code/messages', async (req, res) => {
     }
 });
 
-// --- SECURE IDENTITY DISPATCHER ---
+// --- SECURE IDENTITY DISPATCHER WITH SHEET MATRIX ---
 app.post('/api/get-identity', async (req, res) => {
     if (!checkCurfewStatus()) return res.status(403).json({ error: "Curfew active." });
     const { fingerprintId } = req.body;
     if (!fingerprintId) return res.status(400).json({ error: "Signature token required." });
+    
     try {
         const existingIdentity = await Identity.findOne({ fingerprintId });
-        if (existingIdentity) return res.json({ name: existingIdentity.alias });
+        if (existingIdentity) return res.json({ name: existingIdentity.alias, isNew: false });
 
         const claimedIdentities = await Identity.find().distinct('alias');
         const exclusionString = claimedIdentities.length > 0 ? `Do not select any names from this list: [${claimedIdentities.join(', ')}].` : '';
         const todayStr = new Date().toDateString();
-        const prompt = `Generate ONE random famous character's identity. It must be EITHER a real name OR their fictional title, but NEVER both combined together (e.g. "Tony Stark", "Iron Man", "Harry Potter"). Today's seed modifier: ${todayStr}. ${exclusionString} Respond ONLY with a clean JSON structure matching this format exactly: {"name": "Character Name"}`;
+        
+        const prompt = `Generate ONE random famous character's identity. 
+        Respond ONLY with a clean JSON structure matching this format exactly:
+        {
+          "name": "Character Name",
+          "powers": "Brief list of primary abilities",
+          "description": "One sentence summary of who they are and what they do"
+        }
+        Today's seed modifier: ${todayStr}. ${exclusionString}`;
 
         const apiKey = process.env.GEMINI_API_KEY;
         const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
+        
         const response = await fetch(url, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
         });
+        
         if (!response.ok) throw new Error(`API error code ${response.status}`);
         const data = await response.json();
         let rawText = data.candidates[0].content.parts[0].text.trim();
@@ -173,12 +209,23 @@ app.post('/api/get-identity', async (req, res) => {
         if (rawText.startsWith("```")) rawText = rawText.substring(3, rawText.length - 3);
         const identityData = JSON.parse(rawText.trim());
 
-        const newIdentity = new Identity({ fingerprintId, alias: identityData.name, oneLiner: "active" });
+        const newIdentity = new Identity({ 
+            fingerprintId, 
+            alias: identityData.name, 
+            oneLiner: "active",
+            description: identityData.description,
+            powers: identityData.powers
+        });
         await newIdentity.save();
-        res.json(identityData);
+        
+        res.json({ 
+            name: newIdentity.alias, 
+            powers: newIdentity.powers, 
+            description: newIdentity.description, 
+            isNew: true 
+        });
     } catch (error) {
-        const backups = ["Tony Stark", "Bruce Wayne", "Harry Potter", "Spider-Man"];
-        res.json({ name: backups[Math.floor(Math.random() * backups.length)] });
+        res.json({ name: "Batman", powers: "Intellect, martial arts, gadgets", description: "Gotham's Dark Knight protector.", isNew: true });
     }
 });
 
@@ -256,39 +303,78 @@ io.on('connection', (socket) => {
     });
 });
 
-// --- AUTOMATED CRON-STYLE PURGE PIPELINE (IST ENGINE ON) ---
+// --- AUTOMATED CRON-STYLE PURGE PIPELINE (IST ENGINE - PERSISTENT DM UPDATE) ---
 let lastPurgeDate = null;
 
 setInterval(async () => {
     if (IS_DEV_MODE) return; 
     
-    // 1. Fetch current time based on the server's configured environment timezone (Ensure TZ variable is Asia/Kolkata on Render!)
     const now = new Date();
     const currentHour = now.getHours();
     const todayString = now.toDateString();
 
-    // 2. Trigger the wipe if it's the 4 AM hour and we haven't already successfully executed a purge today
     if (currentHour === CLOSE_HOUR && lastPurgeDate !== todayString) {
         console.log("🚀 CURFEW PURGE TRIGGERED: Initiating dynamic database cleanse...");
         try {
-            // Drop everything to refresh identities, remove bans, clear logs, and delete rooms
-            await Room.deleteMany({});
+            // WIPE the chats, reports, temporary identities, and bans completely
             await Message.deleteMany({});
             await Identity.deleteMany({});
             await Report.deleteMany({});
             await BanList.deleteMany({});
             
-            // Broadcast lock signal to any lingering socket instances
+            // NOTE: We DO NOT run Room.deleteMany({}) anymore! 
+            // The custom group channels and labeled DMs persist so users can return to them.
+
             io.emit('force-curfew-lock');
-            
-            // Mark today's execution as complete so it doesn't loop continuously during the 4 AM hour
             lastPurgeDate = todayString; 
-            console.log("🎯 SUCCESS: All ephemeral database entries completely wiped for the new day.");
+            console.log("🎯 SUCCESS: Ephemeral logs completely wiped. Labeled rooms remain intact.");
         } catch (err) {
             console.error("❌ CRITICAL PURGE ENGINE ERROR:", err.message);
         }
     }
 }, 10000); // Checks every 10 seconds (resource efficient and impossible to skip)
+
+
+// Create or verify custom private DM lanes
+app.post('/api/create-dm', async (req, res) => {
+    const { targetSig, roomName, creatorSig } = req.body;
+    try {
+        // Enforce deterministic room naming checks to prevent duplicates
+        let existingDM = await Room.findOne({
+            isDM: true,
+            participants: { $all: [creatorSig, targetSig] }
+        });
+        
+        if (existingDM) {
+            return res.json({ roomCode: existingDM.roomCode, roomName: existingDM.roomName });
+        }
+
+        const uniqueCode = "dm_" + String(Math.floor(100000 + Math.random() * 900000));
+        const newDM = new Room({
+            roomCode: uniqueCode,
+            roomName: roomName.trim(),
+            isDM: true,
+            participants: [creatorSig, targetSig]
+        });
+        await newDM.save();
+        res.status(201).json({ roomCode: uniqueCode, roomName: newDM.roomName });
+    } catch (err) {
+        res.status(500).json({ error: "Failed to initialize custom DM lane matrix." });
+    }
+});
+
+// Post dynamic secure feedback forms
+app.post('/api/feedback', async (req, res) => {
+    const { text, alias } = req.body;
+    try {
+        const entry = new Feedback({ senderAlias: alias, text });
+        await entry.save();
+        res.json({ success: true, message: "Feedback stored successfully." });
+    } catch (err) {
+        res.status(500).json({ error: "Feedback storage crash." });
+    }
+});
+
 
 // ...
 server.listen(PORT, () => console.log(`CurfewMe Secure Engine live on port ${PORT}`));

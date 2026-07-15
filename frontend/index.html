@@ -17,6 +17,12 @@
 
 <body>
 
+   <!-- FULL SCREEN PROFESSIONAL LOGGING SPLASH LOADER -->
+    <div id="global-loader-overlay" class="global-loader">
+        <div class="spinner-core"></div>
+        <div class="loader-title-text">Establishing Encrypted Operational Link...</div>
+    </div>
+
     <!-- 1. DAYTIME LOCKOUT SCREEN -->
     <div id="day-screen" class="screen day-bg hidden">
         <div class="lockout-container">
@@ -27,106 +33,141 @@
         </div>
     </div>
 
-    
     <!-- 2. NIGHTTIME COMMUNICATION ACTIVE SCREEN -->
     <div id="night-screen" class="screen night-bg hidden">
+        
+        <!-- SIDEBAR VIEWPORT CONTROLLER (HOME ONLY) -->
+        <div id="app-hamburger-sidebar" class="app-sidebar-panel drawer-closed">
+            <div class="sidebar-header">
+                <h3>Options Menu</h3>
+                <button id="close-sidebar-btn" class="icon-btn">×</button>
+            </div>
+            <div class="sidebar-links-list">
+                <button id="sidebar-trigger-about" class="sidebar-item-link">📁 About Platform</button>
+                <button id="sidebar-trigger-feedback" class="sidebar-item-link">✍️ Submit Feedback</button>
+            </div>
+        </div>
 
-        <!-- HEADER LAYOUT -->
         <header id="main-app-header" class="app-header">
-            <div class="header-left-stack">
-                <span class="logo">CurfewMe</span>
-                <span id="user-alias" class="alias-name">Fetching...</span>
+            <div style="display: flex; align-items: center; gap: 16px;">
+                <!-- Hamburger controller visible ONLY on dashboard screen -->
+                <button id="sidebar-open-toggle" class="hamburger-menu-icon-btn">
+                    <span></span><span></span><span></span>
+                </button>
+                <div class="header-left-stack">
+                    <span class="logo">CurfewMe</span>
+                    <span id="user-alias" class="alias-name">Fetching...</span>
+                </div>
             </div>
 
             <div class="neumorphic-toggle-container">
-                <!-- SVG Sun Icon Component -->
-                <svg class="toggle-icon sun-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                    stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                    <circle cx="12" cy="12" r="5"></circle>
-                    <line x1="12" y1="1" x2="12" y2="3"></line>
-                    <line x1="12" y1="21" x2="12" y2="23"></line>
-                    <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
-                    <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
-                    <line x1="1" y1="12" x2="3" y2="12"></line>
-                    <line x1="21" y1="12" x2="23" y2="12"></line>
-                    <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
-                    <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
-                </svg>
-
+                <svg class="toggle-icon sun-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="5"></circle></svg>
                 <label class="tactile-switch">
                     <input type="checkbox" id="theme-toggle-checkbox">
                     <span class="pill-slider"></span>
                 </label>
-
-                <!-- SVG Moon Sparkle Icon Component -->
-                <svg class="toggle-icon moon-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                    stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79Z"></path>
-                    <path d="M19 3v4M17 5h4" stroke-width="1.5"></path>
-                </svg>
+                <svg class="toggle-icon moon-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79Z"></path></svg>
             </div>
         </header>
 
-        <!-- MAIN VIEWPORT PANELS -->
-        <main class="app-viewport">
-
+        <main class="app-viewport-integrated">
             <!-- PANEL A: HOME DASHBOARD CHANNELS FEED -->
-            <section id="feed-view" class="view-panel">
-                <div id="rooms-container" class="groups-grid"></div>
+            <section id="feed-view" class="view-panel-dashboard">
+                <!-- SEGMENTED STATE CONTROL TABS -->
+                <div class="tab-navigation-bar">
+                    <button id="tab-trigger-groups" class="nav-tab active-tab">Group Chats</button>
+                    <button id="tab-trigger-dms" class="nav-tab">Direct Messages</button>
+                </div>
+                
+                <div id="rooms-container" class="groups-grid-integrated"></div>
                 <button id="open-modal-btn" class="floating-action-btn" title="Create or Join Channel">+</button>
             </section>
 
-            <!-- PANEL B: LIVE STREAMING CHAT VIEW -->
-            <section id="chat-view" class="view-panel hidden">
-                <div class="chat-header" style="justify-content: space-between; width: 100%;">
-                    <div style="display: flex; align-items: center; gap: 20px;">
-                        <!-- UPGRADED: Sleek minimalist back arrow button -->
-                        <button id="leave-chat-btn" class="back-navigation-btn" title="Back to Channels">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
-                                stroke-linecap="round" stroke-linejoin="round">
-                                <line x1="19" y1="12" x2="5" y2="12"></line>
-                                <polyline points="12 19 5 12 12 5"></polyline>
-                            </svg>
-                        </button>
-                        <h2 id="current-room-title" class="active-room-heading">Channel: Loading...</h2>
+            <!-- PANEL B: WHATSAPP-STYLE INTEGRATED VIEWPORT -->
+            <section id="chat-view" class="view-panel-chat hidden">
+                <div class="chat-inner-workspace">
+                    <div class="chat-header-pane">
+                        <div style="display: flex; align-items: center; gap: 14px;">
+                            <button id="leave-chat-btn" class="back-navigation-btn">←</button>
+                            <h2 id="current-room-title" class="active-room-heading">Channel Name</h2>
+                        </div>
+                        <button id="leave-group-btn" class="leave-group-action-btn">Leave Group</button>
                     </div>
 
-                    <!-- 🛠️ ELEGANT LEAVE GROUP BUTTON -->
-                    <button id="leave-group-btn" class="leave-group-action-btn" title="Leave Group Permanently">
-                        <svg viewBox="0 0 24 24" width="15" height="15" stroke="currentColor" stroke-width="2.5"
-                            fill="none" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
-                            <polyline points="16 17 21 12 16 7"></polyline>
-                            <line x1="21" y1="12" x2="9" y2="12"></line>
-                        </svg>
-                        Leave Group
-                    </button>
+                    <div id="messages-container" class="chat-messages-stream-integrated"></div>
+
+                    <footer class="chat-input-dock-integrated">
+                        <div class="integrated-input-wrapper">
+                            <button id="emoji-dock-trigger-btn" class="dock-inner-btn">😀</button>
+                            <button id="attach-btn" class="dock-inner-btn">📎</button>
+                            <input type="file" id="file-input" class="hidden" accept="image/*">
+                            <input type="text" id="chat-input" placeholder="Type a message..." autocomplete="off">
+                        </div>
+                        <button id="send-btn" class="dock-send-btn-isolated">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+                        </button>
+                    </footer>
                 </div>
-
-                <div id="messages-container" class="chat-messages-stream"></div>
-
-                <!-- ... Rest of input dock footer stays the same ... -->
-
-                <footer class="chat-input-dock">
-                    <button id="attach-btn" class="dock-action-btn" title="Attach Media Asset">📎</button>
-                    <input type="file" id="file-input" class="hidden" accept="image/*">
-                    <input type="text" id="chat-input" placeholder="Message..." autocomplete="off">
-
-                    <!-- UPGRADED: High-contrast paper airplane icon button for message sending -->
-                    <button id="send-btn" class="dock-send-btn" title="Send Transmissions">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
-                            stroke-linecap="round" stroke-linejoin="round">
-                            <line x1="22" y1="2" x2="11" y2="13"></line>
-                            <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
-                        </svg>
-                    </button>
-                </footer>
             </section>
         </main>
     </div>
 
-    <!-- 3. DIALOG SYSTEM MODAL OVERLAYS -->
+    <!-- 6. MODAL OVERLAYS LAYER MATRIX -->
+    <!-- Custom Dialogue Box for Custom DM Room Labeling -->
+    <div id="dm-naming-modal" class="modal-overlay hidden">
+        <div class="modal-box">
+            <h3>Name this DM Channel</h3>
+            <p class="report-warning-body">Give this private room layout space a personalized identifier tag.</p>
+            <input type="text" id="dm-custom-name-input" placeholder="e.g. Secret Discussion Workspace">
+            <div class="modal-actions">
+                <button class="btn-secondary" id="dm-name-cancel">Cancel</button>
+                <button class="btn-primary" id="dm-name-confirm">Open Chat</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Identity Splash Screen Card Overlay -->
+    <div id="identity-splash-modal" class="modal-overlay hidden">
+        <div class="modal-box text-left">
+            <div class="badge-tag">Today's Unveiling</div>
+            <h2 id="splash-hero-name" style="font-size: 2rem; margin: 8px 0; color: #34C759;">Batman</h2>
+            <div class="meta-section-row">
+                <strong>Powers:</strong> <span id="splash-powers-text">Intellect, rich</span>
+            </div>
+            <p id="splash-desc-text" class="report-warning-body" style="margin-top: 12px; color: var(--text-main);">Summary description details...</p>
+            <div class="modal-actions">
+                <button class="btn-primary" id="splash-close-btn" style="width: 100%; border-radius: 12px;">Enter Curfew Lounge</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Aesthetic Feedback Terminal Overlay -->
+    <div id="feedback-modal" class="modal-overlay hidden">
+        <div class="modal-box">
+            <h3>Submit Platform Review</h3>
+            <textarea id="feedback-textbox-area" placeholder="Write your aesthetic analysis feedback lines safely here..." style="width: 100%; height: 120px; border-radius: 8px; padding: 12px; background: var(--bg-primary); color: var(--text-main); border: 1px solid var(--border-color); resize: none;"></textarea>
+            <div class="modal-actions">
+                <button class="btn-secondary" id="feedback-cancel-btn">Cancel</button>
+                <button class="btn-primary" id="feedback-submit-btn">Transmit Review</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Context User Handle Action Menu Sheet -->
+    <div id="context-action-modal" class="modal-overlay hidden">
+        <div class="modal-box">
+            <h3 id="context-action-title">Target Node</h3>
+            <div style="display: flex; flex-direction: column; gap: 12px; margin-top: 16px;">
+                <button class="btn-primary" id="context-trigger-dm" style="background:#007AFF; color:#fff;">💬 Start Private DM Conversation</button>
+                <button class="btn-primary" id="context-trigger-report" style="background:#FF3B30; color:#fff;">⚠️ Flag & Report Participant</button>
+                <button class="btn-secondary" id="context-trigger-cancel">Dismiss Options</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Native App Overlays (Create/Join/Leave) remain active beneath this line -->
     <div id="custom-modal" class="modal-overlay hidden">
+        <!-- Input fields stack -->
         <div class="modal-box">
             <h3 id="modal-title">Select Action</h3>
             <div class="modal-body" id="modal-content">
@@ -150,42 +191,15 @@
             </div>
         </div>
     </div>
-
-    <!-- NEW MODAL OVERLAY: DEMOCRATIC SYSTEM REPORT VALIDATION OVERLAY -->
-    <div id="report-modal" class="modal-overlay hidden">
-        <div class="modal-box text-left">
-            <h3>Report Participant</h3>
-            <p class="report-warning-body">
-                The user will be restricted for the day if 30% people in the group reports it.
-            </p>
-            <div class="modal-actions">
-                <button class="btn-secondary" id="report-cancel">Cancel</button>
-                <button class="btn-primary" id="report-confirm" style="background:#ff3333; color:#fff;">Confirm
-                    Report</button>
-            </div>
-        </div>
-    </div>
-
     <div id="leave-confirm-modal" class="modal-overlay hidden">
         <div class="modal-box text-left">
             <h3>Leave Group Channel?</h3>
-            <p class="report-warning-body">
-                Are you sure you want to leave this group permanently? The channel layout history will be wiped from your device dashboard.
-            </p>
-            <div class="modal-actions">
-                <button class="btn-secondary" id="leave-modal-cancel">Cancel</button>
-                <button class="btn-primary" id="leave-modal-confirm" style="background:#ff3333; color:#fff;">Leave Group</button>
-            </div>
+            <p class="report-warning-body">Are you sure you want to leave this group permanently?</p>
+            <div class="modal-actions"><button class="btn-secondary" id="leave-modal-cancel">Cancel</button><button class="btn-primary" id="leave-modal-confirm" style="background:#ff3333; color:#fff;">Leave Group</button></div>
         </div>
     </div>
-
-    <!-- Pinned Viewport Security Shield Layer -->
-    <div id="screenshot-overlay" class="screenshot-overlay">
-        <div class="privacy-message-box">
-            <div class="privacy-title">Chat Hidden</div>
-            <div class="privacy-subtitle">Due to privacy reasons</div>
-        </div>
-    </div>
+    <div id="report-modal" class="modal-overlay hidden"></div>
+    <div id="screenshot-overlay" class="screenshot-overlay"></div>
     <script src="app.js"></script>
 </body>
 
