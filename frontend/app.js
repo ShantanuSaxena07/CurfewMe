@@ -22,6 +22,10 @@ const UI = {
     closeSidebarBtn: document.getElementById('close-sidebar-btn'),
     tabGroups: document.getElementById('tab-trigger-groups'),
     tabDMs: document.getElementById('tab-trigger-dms'),
+
+    sidebarTriggerAbout: document.getElementById('sidebar-trigger-about'),
+    sidebarTriggerFeedback: document.getElementById('sidebar-trigger-feedback'),
+
     // Context DM naming dialog
     dmModal: document.getElementById('dm-naming-modal'),
     dmInput: document.getElementById('dm-custom-name-input'),
