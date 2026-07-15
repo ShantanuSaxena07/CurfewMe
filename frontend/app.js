@@ -6,7 +6,7 @@ const SERVER_URL = window.location.hostname === "localhost" || window.location.h
     ? "http://localhost:8080"
     : "https://curfewme-backend.onrender.com"; // <-- Replace this with your actual live Render URL later
 
-const IS_DEV_MODE = false;
+const IS_DEV_MODE = true;
 
 let socket = null;
 let currentRoomCode = null;
@@ -651,20 +651,30 @@ DOM.chatInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') dispa
 
 // --- 8. DEFENSIVE CANVAS ANOMALY BLOCKS ---
 window.addEventListener('blur', () => {
+    // 🛠️ DEV MODE BYPASS: Do not hide the chat UI when inspecting elements or switching windows during testing
+    if (IS_DEV_MODE) return;
+
     const overlay = document.querySelector('.screenshot-overlay');
     if (overlay && !DOM.chatView.classList.contains('hidden')) {
         overlay.style.display = 'flex';
         DOM.messagesContainer.classList.add('frozen-lockdown');
     }
 });
+
 window.addEventListener('focus', () => {
+    if (IS_DEV_MODE) return;
+
     const overlay = document.querySelector('.screenshot-overlay');
     if (overlay) {
         overlay.style.display = 'none';
         DOM.messagesContainer.classList.remove('frozen-lockdown');
     }
 });
+
 window.addEventListener('keydown', (e) => {
+    // 🛠️ DEV MODE BYPASS: Prevent blurring the screen if you press common screenshot or system hotkeys in development
+    if (IS_DEV_MODE) return;
+
     if ((e.metaKey && e.shiftKey) || (e.ctrlKey && e.shiftKey) || e.key === 'PrintScreen') {
         const stream = DOM.messagesContainer;
         stream.style.filter = 'blur(40px)';
