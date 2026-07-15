@@ -1,5 +1,5 @@
 /**
- * curfew. - Secure Production Backend Engine with Democratic 30% Ban Multi-Schedules
+ * curfew. - Secure Production Backend Engine with Persistent DM Capacity
  */
 require('dotenv').config();
 const express = require('express');
@@ -24,7 +24,7 @@ const PORT = process.env.PORT || 8080;
 // --- CONFIGURATION MANAGEMENT ---
 const OPEN_HOUR = 19;  
 const CLOSE_HOUR = 4;  
-const IS_DEV_MODE = true; 
+const IS_DEV_MODE = false; 
 
 function checkCurfewStatus() {
     if (IS_DEV_MODE) return true;
@@ -40,39 +40,16 @@ mongoose.connect(process.env.MONGODB_URI, { dbName: 'Curfew' })
     .then(() => console.log('Successfully established secure connection to MongoDB Atlas [Target: Curfew].'))
     .catch(err => console.error('CRITICAL DATABASE ERROR:', err.message));
 
-// --- MONGOOSE SCHEMAS ---
-
-// Room Schema handles both open group channels and private custom-labeled DMs
+// --- MONGOOSE SCHEMAS (CLEANED AND CONSOLIDATED) ---
 const RoomSchema = new mongoose.Schema({
     roomCode: { type: String, required: true, unique: true, index: true },
     roomName: { type: String, required: true },
     isDM: { type: Boolean, default: false },
-    // Tracks the device tokens allowed to enter this specific conversation channel
     participants: [{ type: String }], 
     createdAt: { type: Date, default: Date.now }
 });
 const Room = mongoose.model('Room', RoomSchema);
 
-// Identity Schema expanded to contain character description properties
-const IdentitySchema = new mongoose.Schema({
-    fingerprintId: { type: String, required: true, unique: true, index: true },
-    alias: { type: String, required: true },
-    oneLiner: { type: String, required: true },
-    description: { type: String, default: "" },
-    powers: { type: String, default: "" },
-    assignedAt: { type: Date, default: Date.now }
-});
-const Identity = mongoose.model('Identity', IdentitySchema);
-
-// Feedback Storage Collection Model (Developer Viewing Only)
-const FeedbackSchema = new mongoose.Schema({
-    senderAlias: { type: String, default: "Anonymous" },
-    text: { type: String, required: true },
-    timestamp: { type: Date, default: Date.now }
-});
-const Feedback = mongoose.model('Feedback', FeedbackSchema);
-
-// Messages, Reports, and BanList remain the same as your current implementation
 const MessageSchema = new mongoose.Schema({
     roomCode: { type: String, required: true, index: true },
     sender: { type: String, required: true },
@@ -87,6 +64,8 @@ const IdentitySchema = new mongoose.Schema({
     fingerprintId: { type: String, required: true, unique: true, index: true },
     alias: { type: String, required: true },
     oneLiner: { type: String, required: true },
+    description: { type: String, default: "" },
+    powers: { type: String, default: "" },
     assignedAt: { type: Date, default: Date.now }
 });
 const Identity = mongoose.model('Identity', IdentitySchema);
@@ -106,6 +85,14 @@ const BanListSchema = new mongoose.Schema({
     bannedAt: { type: Date, default: Date.now }
 });
 const BanList = mongoose.model('BanList', BanListSchema);
+
+const FeedbackSchema = new mongoose.Schema({
+    senderAlias: { type: String, default: "Anonymous" },
+    text: { type: String, required: true },
+    timestamp: { type: Date, default: Date.now }
+});
+const Feedback = mongoose.model('Feedback', FeedbackSchema);
+
 
 // --- SECURE DYNAMIC ROOM CREATION ENGINE ---
 app.post('/api/create-room', async (req, res) => {
@@ -133,11 +120,9 @@ app.post('/api/create-room', async (req, res) => {
 
 // --- STRICT ROOM JOINING CHECK VALIDATOR (CLEAN CONSOLE VERSION) ---
 app.get('/api/verify-room/:code', async (req, res) => {
-    // If curfew is active, return a successful status containing the curfew notice flag
     if (!checkCurfewStatus()) {
         return res.json({ allowed: false, curfewActive: true, error: "Curfew is active." });
     }
-    
     const clientSig = req.query.sig;
     try {
         const activeRoom = await Room.findOne({ roomCode: req.params.code.trim() });
@@ -148,12 +133,9 @@ app.get('/api/verify-room/:code', async (req, res) => {
         if (clientSig) {
             const isBanned = await BanList.findOne({ roomCode: activeRoom.roomCode, fingerprintId: clientSig });
             if (isBanned) {
-                // Return status true but banned true to prevent throwing console errors
                 return res.json({ allowed: false, isBanned: true, error: "You are banned from this group for today." });
             }
         }
-        
-        // Everything checks out perfectly
         res.json({ allowed: true, valid: true, roomCode: activeRoom.roomCode, roomName: activeRoom.roomName });
     } catch (error) {
         res.json({ allowed: false, error: "Database verification exception." });
@@ -175,7 +157,6 @@ app.post('/api/get-identity', async (req, res) => {
     if (!checkCurfewStatus()) return res.status(403).json({ error: "Curfew active." });
     const { fingerprintId } = req.body;
     if (!fingerprintId) return res.status(400).json({ error: "Signature token required." });
-    
     try {
         const existingIdentity = await Identity.findOne({ fingerprintId });
         if (existingIdentity) return res.json({ name: existingIdentity.alias, isNew: false });
@@ -183,7 +164,6 @@ app.post('/api/get-identity', async (req, res) => {
         const claimedIdentities = await Identity.find().distinct('alias');
         const exclusionString = claimedIdentities.length > 0 ? `Do not select any names from this list: [${claimedIdentities.join(', ')}].` : '';
         const todayStr = new Date().toDateString();
-        
         const prompt = `Generate ONE random famous character's identity. 
         Respond ONLY with a clean JSON structure matching this format exactly:
         {
@@ -195,13 +175,11 @@ app.post('/api/get-identity', async (req, res) => {
 
         const apiKey = process.env.GEMINI_API_KEY;
         const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
-        
         const response = await fetch(url, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
         });
-        
         if (!response.ok) throw new Error(`API error code ${response.status}`);
         const data = await response.json();
         let rawText = data.candidates[0].content.parts[0].text.trim();
@@ -217,15 +195,45 @@ app.post('/api/get-identity', async (req, res) => {
             powers: identityData.powers
         });
         await newIdentity.save();
-        
-        res.json({ 
-            name: newIdentity.alias, 
-            powers: newIdentity.powers, 
-            description: newIdentity.description, 
-            isNew: true 
-        });
+        res.json({ name: newIdentity.alias, powers: newIdentity.powers, description: newIdentity.description, isNew: true });
     } catch (error) {
         res.json({ name: "Batman", powers: "Intellect, martial arts, gadgets", description: "Gotham's Dark Knight protector.", isNew: true });
+    }
+});
+
+// --- PRIVATE DM AND APP REVIEWS PIPELINES ---
+app.post('/api/create-dm', async (req, res) => {
+    const { targetSig, roomName, creatorSig } = req.body;
+    try {
+        let existingDM = await Room.findOne({
+            isDM: true,
+            participants: { $all: [creatorSig, targetSig] }
+        });
+        if (existingDM) {
+            return res.json({ roomCode: existingDM.roomCode, roomName: existingDM.roomName });
+        }
+        const uniqueCode = "dm_" + String(Math.floor(100000 + Math.random() * 900000));
+        const newDM = new Room({
+            roomCode: uniqueCode,
+            roomName: roomName.trim(),
+            isDM: true,
+            participants: [creatorSig, targetSig]
+        });
+        await newDM.save();
+        res.status(201).json({ roomCode: uniqueCode, roomName: newDM.roomName });
+    } catch (err) {
+        res.status(500).json({ error: "Failed to initialize custom DM lane matrix." });
+    }
+});
+
+app.post('/api/feedback', async (req, res) => {
+    const { text, alias } = req.body;
+    try {
+        const entry = new Feedback({ senderAlias: alias, text });
+        await entry.save();
+        res.json({ success: true, message: "Feedback stored successfully." });
+    } catch (err) {
+        res.status(500).json({ error: "Feedback storage crash." });
     }
 });
 
@@ -233,17 +241,14 @@ app.post('/api/get-identity', async (req, res) => {
 app.post('/api/report-user', async (req, res) => {
     const { roomCode, targetSig, reporterSig } = req.body;
     if (!roomCode || !targetSig || !reporterSig) return res.status(400).json({ error: "Missing required arguments parameters." });
-
     try {
         const existingReport = await Report.findOne({ roomCode, targetSig, reporterSig });
         if (!existingReport) {
             const newReport = new Report({ roomCode, targetSig, reporterSig });
             await newReport.save();
         }
-
         const directRoomCommunicators = await Message.find({ roomCode }).distinct('senderSig');
         const totalActiveGroupMembersCount = Math.max(directRoomCommunicators.length, 1); 
-
         const specificUniqueReportsCount = await Report.countDocuments({ roomCode, targetSig });
         const structuralReportPercentageRatio = (specificUniqueReportsCount / totalActiveGroupMembersCount) * 100;
 
@@ -253,11 +258,9 @@ app.post('/api/report-user', async (req, res) => {
                 const banEntry = new BanList({ roomCode, fingerprintId: targetSig });
                 await banEntry.save();
             }
-
             io.to(roomCode).emit('user-banned-broadcast', { roomCode, fingerprintId: targetSig });
             return res.json({ evicted: true, message: "Participant has crossed the 30% ratio line and has been banned." });
         }
-
         res.json({ evicted: false, message: "Report processed successfully." });
     } catch (err) {
         res.status(500).json({ error: "Failed to evaluate democratic report criteria rules." });
@@ -308,7 +311,6 @@ let lastPurgeDate = null;
 
 setInterval(async () => {
     if (IS_DEV_MODE) return; 
-    
     const now = new Date();
     const currentHour = now.getHours();
     const todayString = now.toDateString();
@@ -316,15 +318,11 @@ setInterval(async () => {
     if (currentHour === CLOSE_HOUR && lastPurgeDate !== todayString) {
         console.log("🚀 CURFEW PURGE TRIGGERED: Initiating dynamic database cleanse...");
         try {
-            // WIPE the chats, reports, temporary identities, and bans completely
             await Message.deleteMany({});
             await Identity.deleteMany({});
             await Report.deleteMany({});
             await BanList.deleteMany({});
             
-            // NOTE: We DO NOT run Room.deleteMany({}) anymore! 
-            // The custom group channels and labeled DMs persist so users can return to them.
-
             io.emit('force-curfew-lock');
             lastPurgeDate = todayString; 
             console.log("🎯 SUCCESS: Ephemeral logs completely wiped. Labeled rooms remain intact.");
@@ -332,49 +330,6 @@ setInterval(async () => {
             console.error("❌ CRITICAL PURGE ENGINE ERROR:", err.message);
         }
     }
-}, 10000); // Checks every 10 seconds (resource efficient and impossible to skip)
+}, 10000);
 
-
-// Create or verify custom private DM lanes
-app.post('/api/create-dm', async (req, res) => {
-    const { targetSig, roomName, creatorSig } = req.body;
-    try {
-        // Enforce deterministic room naming checks to prevent duplicates
-        let existingDM = await Room.findOne({
-            isDM: true,
-            participants: { $all: [creatorSig, targetSig] }
-        });
-        
-        if (existingDM) {
-            return res.json({ roomCode: existingDM.roomCode, roomName: existingDM.roomName });
-        }
-
-        const uniqueCode = "dm_" + String(Math.floor(100000 + Math.random() * 900000));
-        const newDM = new Room({
-            roomCode: uniqueCode,
-            roomName: roomName.trim(),
-            isDM: true,
-            participants: [creatorSig, targetSig]
-        });
-        await newDM.save();
-        res.status(201).json({ roomCode: uniqueCode, roomName: newDM.roomName });
-    } catch (err) {
-        res.status(500).json({ error: "Failed to initialize custom DM lane matrix." });
-    }
-});
-
-// Post dynamic secure feedback forms
-app.post('/api/feedback', async (req, res) => {
-    const { text, alias } = req.body;
-    try {
-        const entry = new Feedback({ senderAlias: alias, text });
-        await entry.save();
-        res.json({ success: true, message: "Feedback stored successfully." });
-    } catch (err) {
-        res.status(500).json({ error: "Feedback storage crash." });
-    }
-});
-
-
-// ...
 server.listen(PORT, () => console.log(`CurfewMe Secure Engine live on port ${PORT}`));
