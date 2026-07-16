@@ -1,4 +1,4 @@
-/* --- GLOBAL THEME SYSTEM PARAMETERS --- */
+/* --- APP PARAMETERS SPEC MATRIX --- */
 :root {
     --bg-primary: #0B0C10;
     --bg-secondary: rgba(26, 29, 38, 0.65);
@@ -11,16 +11,15 @@
     --text-main: #F5F7FA;
     --text-muted: #7A8499;
     --border-color: rgba(255, 255, 255, 0.05);
-    --accent-glow: #FF4500;
     --radius-main: 16px;
 
-    /* Rounded Switch Segment Metrics */
+    /* Rounded Segment Switch Base Colors */
     --switch-track: #15181F;
     --switch-thumb: #212632;
     --switch-text-active: #FFFFFF;
 
-    /* Ultra Premium Sidebar Spec Sheets */
-    --sidebar-glass: rgba(18, 20, 26, 0.65);
+    /* Translucent Sidebar Options Parameters */
+    --sidebar-glass: rgba(18, 20, 26, 0.7);
     --sidebar-border: rgba(255, 255, 255, 0.04);
     --sidebar-item-hover: rgba(255, 255, 255, 0.04);
 }
@@ -38,13 +37,13 @@ body.light-theme {
     --text-muted: #64748B;
     --border-color: rgba(15, 23, 42, 0.08);
 
-    /* Light Rounded Switch Updates */
+    /* Light Switch Caps Updates */
     --switch-track: #E2E7F0;
     --switch-thumb: #FFFFFF;
     --switch-text-active: #0F172A;
 
-    /* Light Sidebar Spec Sheets */
-    --sidebar-glass: rgba(255, 255, 255, 0.7);
+    /* Light Translucent Sidebar Parameters */
+    --sidebar-glass: rgba(255, 255, 255, 0.85);
     --sidebar-border: rgba(15, 23, 42, 0.06);
     --sidebar-item-hover: rgba(15, 23, 42, 0.04);
 }
@@ -91,7 +90,7 @@ html {
     background-color: var(--bg-primary);
 }
 
-/* --- TIMELINE DISPLAY MATRIX --- */
+/* --- COUNTDOWN DECK --- */
 .lockout-container {
     text-align: center;
     padding: 30px;
@@ -129,7 +128,7 @@ html {
     font-weight: 500;
 }
 
-/* --- GLASSMORPHIC CORE APP HEADER --- */
+/* --- APP GLASSMORPHIC HEADER --- */
 .app-header {
     min-height: 90px;
     background-color: var(--bg-secondary);
@@ -165,7 +164,7 @@ html {
     letter-spacing: 0.08em;
 }
 
-/* --- THEME TOGGLE ELEMENT PACKS --- */
+/* --- THEME TOGGLE OVERLAY --- */
 .neumorphic-toggle-container {
     display: flex;
     align-items: center;
@@ -179,9 +178,10 @@ html {
     color: var(--icon-inactive);
 }
 
+/* 4. COMFORTABLE SUN VECTOR THEME COLOR RULES */
 body.light-theme .sun-icon {
     color: #FF9500 !important;
-    filter: drop-shadow(0 0 8px rgba(255, 149, 0, 0.4));
+    filter: drop-shadow(0 0 8px rgba(255, 149, 0, 0.45));
 }
 
 body:not(.light-theme) .moon-icon {
@@ -230,14 +230,14 @@ body:not(.light-theme) .pill-slider:before {
     transform: translateX(26px);
 }
 
-/* --- 🛠️ FULLY ROUNDED SWITCH SEGMENT SLIDER TRACK --- */
+/* --- 4 & 5. GEOMETRICALLY ROUNDED SEGMENT SWITCH SLIDER DECK --- */
 .fullscreen-switch-track-container-round {
     position: relative;
     width: 100%;
     height: 56px;
     background: var(--switch-track);
     border-radius: 30px;
-    /* Force fully rounded geometric caps */
+    /* Forces round caps formatting */
     display: flex;
     padding: 5px;
     margin-bottom: 24px;
@@ -270,44 +270,66 @@ body:not(.light-theme) .pill-slider:before {
     height: calc(100% - 10px);
     background: var(--switch-thumb);
     border-radius: 25px;
-    /* Symmetrically mirrors the outer casing caps */
+    /* Symmetrically follows tracking track cap */
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
     z-index: 1;
     transition: transform 300ms cubic-bezier(0.25, 1, 0.5, 1);
 }
 
-/* --- FIXED SYMMETRIC INTEGRATED CHAT PANE ENVIRONMENT --- */
-.app-viewport-integrated { 
-    display: flex; 
-    width: 100%; 
-    height: calc(100vh - 90px); 
-    position: relative; 
-}
-
-.view-panel-chat { 
-    width: 100%; 
-    height: 100%; 
-    display: flex; 
-    background: var(--bg-primary); 
-}
-
-/* --- FIXED BOTTOM-LOCKED CHAT INPUT DECK --- */
-.chat-inner-workspace { 
-    flex: 1; 
-    display: flex; 
-    flex-direction: column; 
-    height: 100%; 
+/* --- 5. EDGE-TO-EDGE BALANCED VISUAL EXPANSION ENVIRONMENT --- */
+.app-viewport-integrated {
+    display: flex;
     width: 100%;
-    justify-content: space-between; /* Forces children to spread top-to-bottom */
+    height: calc(100vh - 90px);
+    position: relative;
 }
 
+.view-panel-dashboard {
+    width: 100%;
+    height: 100%;
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+}
+
+.view-panel-chat {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    background: var(--bg-primary);
+}
+
+.chat-inner-workspace {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    width: 100%;
+    justify-content: space-between;
+}
+
+.chat-header-pane {
+    height: 72px;
+    background: var(--bg-secondary);
+    border-bottom: 1px solid var(--border-color);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 30px;
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    z-index: 10;
+}
+
+/* 5. REMOVED RESTRICTIVE CENTERING CARD AND GRANTED EDGE-TO-EDGE FREEDOM */
 .chat-viewport-wrapper {
     flex: 1;
     width: 100%;
     display: flex;
     flex-direction: column;
     position: relative;
-    overflow: hidden; /* Prevents text overflow bubbles from expanding the container */
+    overflow: hidden;
 }
 
 .chat-messages-stream-integrated {
@@ -320,87 +342,7 @@ body:not(.light-theme) .pill-slider:before {
     width: 100%;
 }
 
-/* Forces the input dock deck to align perfectly flush to the bottom floor edge */
-.chat-input-dock-integrated { 
-    padding: 20px 30px; 
-    background: var(--bg-secondary); 
-    border-top: 1px solid var(--border-color); 
-    display: flex; 
-    align-items: center; 
-    gap: 16px; 
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
-    width: 100%;
-    margin-top: auto; /* Guarantees layout lock at the bottom of the viewport */
-}
-
-/* --- FIXED SPEECH BUBBLE ALIGNMENT RADII --- */
-.msg-wrapper { 
-    display: flex; 
-    flex-direction: column; 
-    max-width: 65%; 
-    width: fit-content; 
-    margin-bottom: 4px; 
-}
-
-/* Incoming bubbles snap cleanly to the left boundary wall */
-.msg-wrapper.incoming { 
-    align-self: flex-start !important; 
-    align-items: flex-start !important; 
-    margin-right: auto;
-}
-
-/* Outgoing bubbles snap cleanly to the right boundary wall */
-.msg-wrapper.outgoing { 
-    align-self: flex-end !important; 
-    align-items: flex-end !important; 
-    margin-left: auto;
-}
-
-.msg-meta { 
-    font-size: 0.72rem; 
-    font-weight: 800; 
-    color: var(--text-muted); 
-    text-transform: uppercase; 
-    letter-spacing: 0.06em; 
-    margin-bottom: 4px; 
-    user-select: none; 
-}
-
-.msg-bubble { 
-    padding: 12px 18px; 
-    border-radius: 18px; 
-    font-size: 0.98rem; 
-    line-height: 1.45; 
-    word-break: break-word; 
-    font-weight: 500; 
-}
-
-/* 🛠️ Symmetrical wrapper handles alignment across multiple aspect ratios */
-.chat-viewport-wrapper {
-    flex: 1;
-    width: 100%;
-    max-width: 1200px;
-    /* Lock bounding margins to match header decks */
-    margin: 0 auto;
-    /* Centers layout canvas horizontally */
-    display: flex;
-    flex-direction: column;
-    position: relative;
-    height: calc(100% - 152px);
-}
-
-.chat-messages-stream-integrated {
-    flex: 1;
-    overflow-y: auto;
-    padding: 30px;
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
-    width: 100%;
-}
-
-/* --- CHAT SPEECH BUBBLE GEOMETRIC PARAMETERS --- */
+/* --- SPEECH BUBBLE ALIGNMENT PARAMETERS --- */
 .msg-wrapper {
     display: flex;
     flex-direction: column;
@@ -409,14 +351,18 @@ body:not(.light-theme) .pill-slider:before {
     margin-bottom: 4px;
 }
 
-.msg-wrapper.outgoing {
-    align-self: flex-end;
-    align-items: flex-end;
+/* Incoming bubbles align cleanly to the left wall */
+.msg-wrapper.incoming {
+    align-self: flex-start !important;
+    align-items: flex-start !important;
+    margin-right: auto;
 }
 
-.msg-wrapper.incoming {
-    align-self: flex-start;
-    align-items: flex-start;
+/* Outgoing bubbles align cleanly to the right wall */
+.msg-wrapper.outgoing {
+    align-self: flex-end !important;
+    align-items: flex-end !important;
+    margin-left: auto;
 }
 
 .msg-meta {
@@ -425,7 +371,7 @@ body:not(.light-theme) .pill-slider:before {
     color: var(--text-muted);
     text-transform: uppercase;
     letter-spacing: 0.06em;
-    margin-bottom: 6px;
+    margin-bottom: 4px;
     cursor: pointer;
     user-select: none;
 }
@@ -435,8 +381,8 @@ body:not(.light-theme) .pill-slider:before {
 }
 
 .msg-bubble {
-    padding: 14px 20px;
-    border-radius: 20px;
+    padding: 12px 18px;
+    border-radius: 18px;
     font-size: 0.98rem;
     line-height: 1.45;
     word-break: break-word;
@@ -455,7 +401,17 @@ body:not(.light-theme) .pill-slider:before {
     border-top-right-radius: 4px;
 }
 
-/* --- NAVIGATION AND INPUT DOCK SPEC SHEETS --- */
+body.light-theme .incoming .msg-bubble {
+    background-color: #E2E8F0;
+    color: #0F172A;
+}
+
+body.light-theme .outgoing .msg-bubble {
+    background-color: #0F172A;
+    color: #FFFFFF;
+}
+
+/* --- 3. WIDE BACK NAVIGATION ARROW DIMENSIONS --- */
 .back-navigation-btn-restored {
     background: transparent;
     border: none;
@@ -501,6 +457,7 @@ body:not(.light-theme) .pill-slider:before {
     background: rgba(255, 59, 48, 0.08);
 }
 
+/* --- INPUT DECK LOCKED TO FOOTER FLOOR --- */
 .chat-input-dock-integrated {
     padding: 20px 30px;
     background: var(--bg-secondary);
@@ -510,6 +467,8 @@ body:not(.light-theme) .pill-slider:before {
     gap: 16px;
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
+    width: 100%;
+    margin-top: auto;
 }
 
 .integrated-input-wrapper {
@@ -549,6 +508,7 @@ body.light-theme .integrated-input-wrapper {
     outline: none;
 }
 
+/* 2. ROUND BLUE SEND ICON SPEC SHEET */
 .dock-send-btn-round-blue {
     width: 46px;
     height: 46px;
@@ -575,7 +535,7 @@ body.light-theme .integrated-input-wrapper {
     transform: translate(-1px, 1px);
 }
 
-/* --- 🛠️ ULTRA PREMIUM HIGH-END TRANSLUCENT SIDEBAR --- */
+/* --- 2. PREMIUM HIGH-END TRANSLUCENT SIDEBAR PANEL --- */
 .app-sidebar-panel {
     position: fixed;
     top: 0;
@@ -583,8 +543,8 @@ body.light-theme .integrated-input-wrapper {
     width: 320px;
     height: 100vh;
     background: var(--sidebar-glass);
-    backdrop-filter: blur(35px) saturate(170%);
-    -webkit-backdrop-filter: blur(35px) saturate(170%);
+    backdrop-filter: blur(35px) saturate(160%);
+    -webkit-backdrop-filter: blur(35px) saturate(160%);
     z-index: 99999;
     border-right: 1px solid var(--sidebar-border);
     padding: 40px 28px;
@@ -660,12 +620,7 @@ body.light-theme .app-sidebar-panel {
     transform: translateX(4px);
 }
 
-.sidebar-icon-wrapper {
-    font-size: 1.15rem;
-    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.15));
-}
-
-/* --- FEED TILES GRAPHICS --- */
+/* --- CHANNELS CARDS GRID --- */
 .groups-grid-integrated {
     display: flex;
     flex-direction: column;
@@ -747,7 +702,7 @@ body.light-theme .floating-action-btn {
     color: #FFFFFF;
 }
 
-/* --- ELEGANT BALANCED MODAL CONTAINERS --- */
+/* --- MODALS SHEETS MATRIX --- */
 .modal-overlay {
     position: fixed;
     top: 0;
@@ -891,7 +846,7 @@ body.light-theme .btn-primary {
     border-radius: 8px;
 }
 
-/* --- 🛠️ DYNAMIC GLASSMORPHIC FULL SCREEN SCREEN SHIELD LOADER --- */
+/* --- 6. TRANSLUCENT GLASSMORPHIC INITIALIZATION SHIELD LOADER --- */
 .global-loader-glassmorphic {
     position: fixed;
     top: 0;
@@ -899,7 +854,6 @@ body.light-theme .btn-primary {
     width: 100vw;
     height: 100vh;
     background: rgba(11, 12, 16, 0.45);
-    /* Soft baseline tint let users slightly view elements */
     backdrop-filter: blur(25px) cubic-bezier(0.1, 1, 0.1, 1);
     -webkit-backdrop-filter: blur(25px) cubic-bezier(0.1, 1, 0.1, 1);
     z-index: 999999;

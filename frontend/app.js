@@ -1,12 +1,12 @@
 /**
- * curfew. - High-End Real-Time Frontend Engine
+ * curfew. - Consolidated Production Frontend Engine
  */
 
 const SERVER_URL = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1"
     ? "http://localhost:8080"
     : "https://curfewme-backend.onrender.com";
 
-const IS_DEV_MODE = true;
+const IS_DEV_MODE = false;
 
 let socket = null;
 let currentRoomCode = null;
@@ -14,6 +14,7 @@ let currentUser = { alias: '' };
 let currentActiveViewTab = "groups"; 
 let activeLongPressContextUser = null; 
 let isFetchingIdentity = false;
+let currentModalState = 'choice';
 
 const UI = {
     loaderOverlay: document.getElementById('global-loader-overlay'),
@@ -77,9 +78,9 @@ const DOM = {
     fileInput: document.getElementById('file-input'),
     modalErrorText: document.getElementById('modal-error-text'),
     themeToggleCheckbox: document.getElementById('theme-toggle-checkbox'),
-    reportModal: document.getElementById('report-modal'),
-    reportCancel: document.getElementById('report-cancel'),
-    reportConfirm: document.getElementById('report-confirm')
+    leaveConfirmModal: document.getElementById('leave-confirm-modal'),
+    leaveModalCancel: document.getElementById('leave-modal-cancel'),
+    leaveModalConfirm: document.getElementById('leave-modal-confirm')
 };
 
 // --- 1. RUNTIME TIMELINE ENGINE ---
@@ -179,7 +180,7 @@ async function fetchIdentitySecurely() {
     }
 }
 
-// --- 3. DYNAMIC ROUND SWITCH SLIDER HANDLERS ---
+// --- 4 & 5. ROUND SLIDER ACCENT TRANSLATIONS ---
 UI.tabGroups.addEventListener('click', () => {
     currentActiveViewTab = "groups";
     UI.tabIndicator.style.transform = "translateX(0%)";
@@ -245,7 +246,7 @@ async function renderPersistentRoomTabs() {
     }
 }
 
-// --- 4. SIDEBAR MECHANICS ---
+// --- 2 & 3. DRAWER AND OVERLAY AUTO DISMISS DISPATCH PIPELINES ---
 UI.openSidebarBtn.addEventListener('click', (e) => {
     e.stopPropagation();
     UI.sidebar.classList.remove('drawer-closed');
@@ -257,19 +258,18 @@ UI.closeSidebarBtn.addEventListener('click', () => {
     UI.sidebar.classList.add('drawer-closed');
 });
 
-// --- 5. 🛠️ UNIVERSAL LAYER DROPDOWN OUTER DISMISSAL DISPATCH MATRIX ---
 window.addEventListener('click', (e) => {
-    // Dismiss Sidebar
+    // 2. Click outside sidebar triggers close
     if (UI.sidebar.classList.contains('drawer-open')) {
         if (!UI.sidebar.contains(e.target) && e.target !== UI.openSidebarBtn) {
             UI.sidebar.classList.remove('drawer-open');
             UI.sidebar.classList.add('drawer-closed');
         }
     }
-    // Dismiss Create/Join Room Panel Container Automatically on Outside Click
+    // 3. Click outside create/join panel triggers close
     if (!DOM.customModal.classList.contains('hidden')) {
-        const structuralModalBoxElement = DOM.customModal.querySelector('.modal-box');
-        if (structuralModalBoxElement && !structuralModalBoxElement.contains(e.target) && e.target !== DOM.openModalBtn) {
+        const structuralBox = DOM.customModal.querySelector('.modal-box');
+        if (structuralBox && !structuralBox.contains(e.target) && e.target !== DOM.openModalBtn) {
             DOM.customModal.classList.add('hidden');
         }
     }
@@ -305,7 +305,7 @@ UI.feedbackSubmit.addEventListener('click', async () => {
     }
 });
 
-// --- 6. TIMED LONG PRESS META CONTROLS ---
+// --- TIMED LONG PRESS META CONFIGURATIONS ---
 function registerLongPressUserMeta(metaNode, messageSenderSig, messageSenderName) {
     let pressTimer = null;
     const fireOptionDialogue = () => {
@@ -360,7 +360,7 @@ UI.contextReport.addEventListener('click', async () => {
         });
         const data = await response.json();
         if (data.evicted) {
-            alert(`User ${activeLongPressContextUser.name} has crossed the 30% limit and has been banned.`);
+            alert(`User ${activeLongPressContextUser.name} has crossed the threshold and has been banned.`);
         } else {
             alert(data.message || "Democratic report filed successfully.");
         }
@@ -371,7 +371,7 @@ UI.contextReport.addEventListener('click', async () => {
     }
 });
 
-// --- 7. SOCKET HANDLING DECK ---
+// --- SOCKET SYSTEM TUNNELS ---
 function initializeRealTimeSocket() {
     if (typeof io === 'undefined') return;
     socket = io(SERVER_URL);
@@ -401,7 +401,7 @@ function initializeRealTimeSocket() {
     });
 }
 
-// --- 8. SYMMETRIC INTEGRATED CHAT VIEW INTERFACES ---
+// --- 5. VISUAL VIEWPORT CORE ALIGNMENT PIPELINES ---
 async function joinActiveChannel(roomCode, roomName) {
     currentRoomCode = roomCode;
     UI.openSidebarBtn.style.display = "none";
@@ -493,7 +493,7 @@ DOM.leaveChatBtn.addEventListener('click', () => {
     renderPersistentRoomTabs();
 });
 
-// --- 9. RESET TIME COUNTER WARNINGS ---
+// --- DAFTS TICKER WIPE WARNINGS ---
 function checkSystemMeltdownWarning() {
     if (IS_DEV_MODE) return;
     const now = new Date();
@@ -586,19 +586,17 @@ DOM.modalConfirm.addEventListener('click', async () => {
     }
 });
 
-const leaveModal = document.getElementById('leave-confirm-modal');
-document.getElementById('leave-group-btn').addEventListener('click', () => { if (!currentRoomCode) return; leaveModal.classList.remove('hidden'); });
-document.getElementById('leave-modal-cancel').addEventListener('click', () => leaveModal.classList.add('hidden'));
-document.getElementById('leave-modal-confirm').addEventListener('click', () => {
-    leaveModal.classList.add('hidden');
+DOM.leaveModalCancel.addEventListener('click', () => DOM.leaveConfirmModal.classList.add('hidden'));
+DOM.leaveModalConfirm.addEventListener('click', () => {
+    DOM.leaveConfirmModal.classList.add('hidden');
     let savedRooms = JSON.parse(localStorage.getItem('curfew_rooms_map')) || {};
     delete savedRooms[currentRoomCode];
     localStorage.setItem('curfew_rooms_map', JSON.stringify(savedRooms));
     DOM.chatView.classList.add('hidden'); DOM.feedView.classList.remove('hidden'); DOM.mainAppHeader.classList.remove('hidden');
     currentRoomCode = null; renderPersistentRoomTabs();
 });
+document.getElementById('leave-group-btn').addEventListener('click', () => { if (!currentRoomCode) return; DOM.leaveConfirmModal.classList.remove('hidden'); });
 
-// --- 10. COMMUNICATIONS AND CAMERA BLOCKS ---
 function linkifyText(text) {
     const urlPattern = /(\b(https?|ftp|file):\/\/[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|])/ig;
     return text.replace(urlPattern, '<a href="$1" target="_blank" class="msg-link">$1</a>');

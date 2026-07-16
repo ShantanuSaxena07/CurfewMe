@@ -24,7 +24,7 @@ const PORT = process.env.PORT || 8080;
 // --- CONFIGURATION MANAGEMENT ---
 const OPEN_HOUR = 19;  
 const CLOSE_HOUR = 4;  
-const IS_DEV_MODE = true; 
+const IS_DEV_MODE = false; 
 
 function checkCurfewStatus() {
     if (IS_DEV_MODE) return true;
@@ -151,7 +151,7 @@ app.get('/api/rooms/:code/messages', async (req, res) => {
     }
 });
 
-// --- SECURE IDENTITY DISPATCHER WITH SHEET MATRIX ---
+// --- SECURE IDENTITY DISPATCHER ---
 app.post('/api/get-identity', async (req, res) => {
     if (!checkCurfewStatus()) return res.status(403).json({ error: "Curfew active." });
     const { fingerprintId } = req.body;
@@ -226,7 +226,7 @@ app.post('/api/feedback', async (req, res) => {
     }
 });
 
-// --- DEMOCRATIC MODERATION SYSTEM EVALUATION PIPELINE ---
+// --- DEMOCRATIC MODERATION EVALUATION PIPELINE ---
 app.post('/api/report-user', async (req, res) => {
     const { roomCode, targetSig, reporterSig } = req.body;
     if (!roomCode || !targetSig || !reporterSig) return res.status(400).json({ error: "Missing required arguments parameters." });
@@ -242,7 +242,7 @@ app.post('/api/report-user', async (req, res) => {
             const alreadyListed = await BanList.findOne({ roomCode, fingerprintId: targetSig });
             if (!alreadyListed) { const banEntry = new BanList({ roomCode, fingerprintId: targetSig }); await banEntry.save(); }
             io.to(roomCode).emit('user-banned-broadcast', { roomCode, fingerprintId: targetSig });
-            return res.json({ evicted: true, message: "Participant has crossed the 30% ratio line and has been banned." });
+            return res.json({ evicted: true, message: "Participant has been banned." });
         }
         res.json({ evicted: false, message: "Report processed successfully." });
     } catch (err) {
@@ -274,17 +274,14 @@ io.on('connection', (socket) => {
     });
 });
 
-// --- AUTOMATED CRON-STYLE PURGE PIPELINE (IST ENGINE ON IN ALL MODES) ---
+// --- AUTOMATED 4 AM PURGE PIPELINE (IST ENGINE RUNS IN ALL MODES) ---
 let lastPurgeDate = null;
-
 setInterval(async () => {
     const now = new Date();
     const currentHour = now.getHours();
     const todayString = now.toDateString();
 
-    // 🛠️ FIX: Runs perfectly in dev mode now so test messages drop at 4 AM automatically
     if (currentHour === CLOSE_HOUR && lastPurgeDate !== todayString) {
-        console.log("🚀 CURFEW PURGE TRIGGERED: Initiating dynamic database cleanse...");
         try {
             await Message.deleteMany({});
             await Identity.deleteMany({});
@@ -293,7 +290,7 @@ setInterval(async () => {
             
             io.emit('force-curfew-lock');
             lastPurgeDate = todayString; 
-            console.log("🎯 SUCCESS: Ephemeral logs completely wiped. Labeled rooms remain intact.");
+            console.log("🎯 SUCCESS: Ephemeral logs completely wiped at 4 AM.");
         } catch (err) {
             console.error("❌ CRITICAL PURGE ENGINE ERROR:", err.message);
         }

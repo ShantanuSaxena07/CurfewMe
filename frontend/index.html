@@ -4,20 +4,18 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CurfewMe</title>
-    <link rel="icon" type="image/png" href="favicon.png">
-    <link rel="apple-touch-icon" href="favicon.png">
     <link rel="stylesheet" href="style.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.5/socket.io.min.js"></script>
 </head>
 <body>
 
-    <!-- PREMIUM TRANSLUCENT GLASSMORPHIC SCREEN LOAD SHIELD -->
+    <!-- 6. PREMIUM BLURRED GLASSMORPHIC SCREEN LOAD SHIELD -->
     <div id="global-loader-overlay" class="global-loader-glassmorphic">
         <div class="spinner-core"></div>
         <div class="loader-title-text">Establishing Encrypted Operational Link...</div>
     </div>
 
-    <!-- 1. DAYTIME LOCKOUT SCREEN -->
+    <!-- DAYTIME LOCKOUT SCREEN -->
     <div id="day-screen" class="screen day-bg hidden">
         <div class="lockout-container">
             <h1 class="lockout-logo">CurfewMe</h1>
@@ -27,22 +25,18 @@
         </div>
     </div>
 
-    <!-- 2. NIGHTTIME COMMUNICATION ACTIVE SCREEN -->
+    <!-- NIGHTTIME CHAT APP ACTIVE UI -->
     <div id="night-screen" class="screen night-bg hidden">
         
-        <!-- SIDEBAR DRAWER WITH INTEGRATED PREMIUM BACKDROP FILTER -->
+        <!-- 2. STYLISH TRANSBORDERS NAVIGATION SIDEBAR -->
         <div id="app-hamburger-sidebar" class="app-sidebar-panel drawer-closed">
             <div class="sidebar-header">
                 <h3>Options Menu</h3>
                 <button id="close-sidebar-btn" class="sidebar-close-x-btn">×</button>
             </div>
             <div class="sidebar-links-list">
-                <button id="sidebar-trigger-about" class="sidebar-item-link">
-                    <span class="sidebar-icon-wrapper">📁</span> About Platform
-                </button>
-                <button id="sidebar-trigger-feedback" class="sidebar-item-link">
-                    <span class="sidebar-icon-wrapper">✍️</span> Submit Feedback
-                </button>
+                <button id="sidebar-trigger-about" class="sidebar-item-link">📁 About Platform</button>
+                <button id="sidebar-trigger-feedback" class="sidebar-item-link">✍️ Submit Feedback</button>
             </div>
         </div>
 
@@ -58,6 +52,7 @@
             </div>
 
             <div class="neumorphic-toggle-container">
+                <!-- 4. ORIGINAL HIGH-CONTRAST SUN ICON VECTOR -->
                 <svg id="sun-vector-node" class="toggle-icon sun-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                     <circle cx="12" cy="12" r="5"></circle>
                     <line x1="12" y1="1" x2="12" y2="3"></line>
@@ -69,12 +64,10 @@
                     <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
                     <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
                 </svg>
-
                 <label class="tactile-switch">
                     <input type="checkbox" id="theme-toggle-checkbox">
                     <span class="pill-slider"></span>
                 </label>
-
                 <svg class="toggle-icon moon-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
                     <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79Z"></path>
                 </svg>
@@ -82,10 +75,10 @@
         </header>
 
         <main class="app-viewport-integrated">
-            <!-- PANEL A: HOME DASHBOARD CHANNELS FEED -->
+            <!-- PANEL A: HOME DASHBOARD HUB -->
             <section id="feed-view" class="view-panel-dashboard">
                 
-                <!-- FULL-WIDTH ROUND SEGMENTED CONTROL SLIDER SWITCH -->
+                <!-- 5. FULL SCREEN ROUND SEGMENT TAB SLIDER BUTTONS -->
                 <div class="fullscreen-switch-track-container-round">
                     <div id="sliding-active-tab-indicator" class="switch-slider-indicator-block-round"></div>
                     <button id="tab-trigger-groups" class="switch-action-tab-button active-text">Group Chats</button>
@@ -96,11 +89,12 @@
                 <button id="open-modal-btn" class="floating-action-btn" title="Create or Join Channel">+</button>
             </section>
 
-            <!-- PANEL B: SYMMETRIC INTEGRATED WHATSAPP STYLE VIEWPORT -->
+            <!-- PANEL B: SYMMETRIC INTEGRATED CHAT SPACE -->
             <section id="chat-view" class="view-panel-chat hidden">
                 <div class="chat-inner-workspace">
                     <div class="chat-header-pane">
                         <div style="display: flex; align-items: center; gap: 16px;">
+                            <!-- 3. RESTORED WIDE FORMAT COMFORTABLE BACK BUTTON -->
                             <button id="leave-chat-btn" class="back-navigation-btn-restored" title="Back to Channels">
                                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                                     <line x1="19" y1="12" x2="5" y2="12"></line>
@@ -112,7 +106,7 @@
                         <button id="leave-group-btn" class="leave-group-action-btn">Leave Group</button>
                     </div>
 
-                    <!-- FIXED SYMMETRIC INTERNAL CHAT PANEL CONTAINER -->
+                    <!-- 5. ALL-MARGIN EQUALIZED BALANCED VERTICAL WORKSPACE -->
                     <div class="chat-viewport-wrapper">
                         <div id="messages-container" class="chat-messages-stream-integrated"></div>
                     </div>
@@ -124,6 +118,7 @@
                             <input type="file" id="file-input" class="hidden" accept="image/*">
                             <input type="text" id="chat-input" placeholder="Type a message..." autocomplete="off">
                         </div>
+                        <!-- 2. SHAKEN COBALT BLUE GLOW ROUND SEND TOGGLE -->
                         <button id="send-btn" class="dock-send-btn-round-blue" title="Send Message">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                                 <line x1="22" y1="2" x2="11" y2="13"></line>
@@ -136,7 +131,7 @@
         </main>
     </div>
 
-    <!-- 3. MODAL DIALOGS MATRIX LAYERS -->
+    <!-- 7. CLEAN ELEGANT INTEGRATED FULL BOX FOR ABOUT SECTION -->
     <div id="about-platform-modal" class="modal-overlay hidden">
         <div class="modal-box text-left wide-modal-profile">
             <h3>About CurfewMe</h3>
@@ -151,18 +146,7 @@
         </div>
     </div>
 
-    <div id="feedback-modal" class="modal-overlay hidden">
-        <div class="modal-box">
-            <h3>Submit Platform Review</h3>
-            <textarea id="feedback-textbox-area" placeholder="Write your feedback lines safely here..."></textarea>
-            <div class="modal-actions">
-                <button class="btn-secondary" id="feedback-cancel-btn">Cancel</button>
-                <button class="btn-primary" id="feedback-submit-btn">Transmit Review</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- 🛠️ FIXED ALIGNMENT: DESCRIPTION DISPATCHED FIRST, POWERS RENDERED BENEATH -->
+    <!-- 1. POWERS FLIPPED EXTENSION: RENDERED BENEATH DESCRIPTION -->
     <div id="identity-splash-modal" class="modal-overlay hidden">
         <div class="modal-box text-left">
             <div class="badge-tag">Today's Unveiling</div>
@@ -174,6 +158,17 @@
             </div>
             <div class="modal-actions">
                 <button class="btn-primary" id="splash-close-btn" style="width: 100%; border-radius: 12px;">Enter Curfew Lounge</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="feedback-modal" class="modal-overlay hidden">
+        <div class="modal-box">
+            <h3>Submit Platform Review</h3>
+            <textarea id="feedback-textbox-area" placeholder="Write your feedback lines safely here..."></textarea>
+            <div class="modal-actions">
+                <button class="btn-secondary" id="feedback-cancel-btn">Cancel</button>
+                <button class="btn-primary" id="feedback-submit-btn">Transmit Review</button>
             </div>
         </div>
     </div>
@@ -201,7 +196,7 @@
         </div>
     </div>
 
-    <!-- ROOM SELECTION ACTION OVERLAY WITH MAPPED OUTER DISMISSAL DISPATCH HOOKS -->
+    <!-- 3. CREATE/JOIN COMPONENT MODAL PANEL -->
     <div id="custom-modal" class="modal-overlay hidden">
         <div class="modal-box">
             <h3 id="modal-title">Select Action</h3>
