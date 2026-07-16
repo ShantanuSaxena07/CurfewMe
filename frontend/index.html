@@ -11,8 +11,8 @@
 </head>
 <body>
 
-    <!-- FULL SCREEN PROFESSIONAL LOADER -->
-    <div id="global-loader-overlay" class="global-loader">
+    <!-- PREMIUM TRANSLUCENT GLASSMORPHIC SCREEN LOAD SHIELD -->
+    <div id="global-loader-overlay" class="global-loader-glassmorphic">
         <div class="spinner-core"></div>
         <div class="loader-title-text">Establishing Encrypted Operational Link...</div>
     </div>
@@ -30,15 +30,19 @@
     <!-- 2. NIGHTTIME COMMUNICATION ACTIVE SCREEN -->
     <div id="night-screen" class="screen night-bg hidden">
         
-        <!-- SIDEBAR DRAWER (COLLAPSES VIA EXTERNAL CLICKS TOO) -->
+        <!-- SIDEBAR DRAWER WITH INTEGRATED PREMIUM BACKDROP FILTER -->
         <div id="app-hamburger-sidebar" class="app-sidebar-panel drawer-closed">
             <div class="sidebar-header">
                 <h3>Options Menu</h3>
                 <button id="close-sidebar-btn" class="sidebar-close-x-btn">×</button>
             </div>
             <div class="sidebar-links-list">
-                <button id="sidebar-trigger-about" class="sidebar-item-link">📁 About Platform</button>
-                <button id="sidebar-trigger-feedback" class="sidebar-item-link">✍️ Submit Feedback</button>
+                <button id="sidebar-trigger-about" class="sidebar-item-link">
+                    <span class="sidebar-icon-wrapper">📁</span> About Platform
+                </button>
+                <button id="sidebar-trigger-feedback" class="sidebar-item-link">
+                    <span class="sidebar-icon-wrapper">✍️</span> Submit Feedback
+                </button>
             </div>
         </div>
 
@@ -54,7 +58,6 @@
             </div>
 
             <div class="neumorphic-toggle-container">
-                <!-- RESTORED PREMIUM SUN ICON VECTOR -->
                 <svg id="sun-vector-node" class="toggle-icon sun-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                     <circle cx="12" cy="12" r="5"></circle>
                     <line x1="12" y1="1" x2="12" y2="3"></line>
@@ -82,9 +85,9 @@
             <!-- PANEL A: HOME DASHBOARD CHANNELS FEED -->
             <section id="feed-view" class="view-panel-dashboard">
                 
-                <!-- FULL-WIDTH SEGMENTED TRACK CONTROL SWITCH DECK -->
-                <div class="fullscreen-switch-track-container">
-                    <div id="sliding-active-tab-indicator" class="switch-slider-indicator-block"></div>
+                <!-- FULL-WIDTH ROUND SEGMENTED CONTROL SLIDER SWITCH -->
+                <div class="fullscreen-switch-track-container-round">
+                    <div id="sliding-active-tab-indicator" class="switch-slider-indicator-block-round"></div>
                     <button id="tab-trigger-groups" class="switch-action-tab-button active-text">Group Chats</button>
                     <button id="tab-trigger-dms" class="switch-action-tab-button">Direct Messages</button>
                 </div>
@@ -93,12 +96,11 @@
                 <button id="open-modal-btn" class="floating-action-btn" title="Create or Join Channel">+</button>
             </section>
 
-            <!-- PANEL B: LIVE STREAMING CHAT VIEW -->
+            <!-- PANEL B: SYMMETRIC INTEGRATED WHATSAPP STYLE VIEWPORT -->
             <section id="chat-view" class="view-panel-chat hidden">
                 <div class="chat-inner-workspace">
                     <div class="chat-header-pane">
                         <div style="display: flex; align-items: center; gap: 16px;">
-                            <!-- RESTORED WIDE NAVIGATION BACK BUTTON -->
                             <button id="leave-chat-btn" class="back-navigation-btn-restored" title="Back to Channels">
                                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                                     <line x1="19" y1="12" x2="5" y2="12"></line>
@@ -110,7 +112,10 @@
                         <button id="leave-group-btn" class="leave-group-action-btn">Leave Group</button>
                     </div>
 
-                    <div id="messages-container" class="chat-messages-stream-integrated"></div>
+                    <!-- FIXED SYMMETRIC INTERNAL CHAT PANEL CONTAINER -->
+                    <div class="chat-viewport-wrapper">
+                        <div id="messages-container" class="chat-messages-stream-integrated"></div>
+                    </div>
 
                     <footer class="chat-input-dock-integrated">
                         <div class="integrated-input-wrapper">
@@ -119,7 +124,6 @@
                             <input type="file" id="file-input" class="hidden" accept="image/*">
                             <input type="text" id="chat-input" placeholder="Type a message..." autocomplete="off">
                         </div>
-                        <!-- FIXED ROUND BLUE SEND BUTTON WITH SHAKEN PAPER AIRPLANE -->
                         <button id="send-btn" class="dock-send-btn-round-blue" title="Send Message">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                                 <line x1="22" y1="2" x2="11" y2="13"></line>
@@ -158,14 +162,16 @@
         </div>
     </div>
 
+    <!-- 🛠️ FIXED ALIGNMENT: DESCRIPTION DISPATCHED FIRST, POWERS RENDERED BENEATH -->
     <div id="identity-splash-modal" class="modal-overlay hidden">
         <div class="modal-box text-left">
             <div class="badge-tag">Today's Unveiling</div>
             <h2 id="splash-hero-name" style="font-size: 2rem; margin: 8px 0; color: #34C759;">Character Name</h2>
-            <div class="meta-section-row">
-                <strong>Powers:</strong> <span id="splash-powers-text">Loading...</span>
+            <p id="splash-desc-text" class="report-warning-body" style="margin: 12px 0; color: var(--text-main); font-size: 1rem; line-height: 1.5;"></p>
+            <div class="meta-section-row" style="margin: 16px 0; padding-top: 12px; border-top: 1px solid var(--border-color);">
+                <strong style="color: var(--text-muted); text-transform: uppercase; font-size: 0.8rem; letter-spacing: 0.05em; display: block; margin-bottom: 4px;">Abilities & Powers:</strong>
+                <span id="splash-powers-text" style="font-weight: 600; font-size: 0.95rem; line-height: 1.4;">Loading...</span>
             </div>
-            <p id="splash-desc-text" class="report-warning-body" style="margin-top: 12px; color: var(--text-main);">Summary description details...</p>
             <div class="modal-actions">
                 <button class="btn-primary" id="splash-close-btn" style="width: 100%; border-radius: 12px;">Enter Curfew Lounge</button>
             </div>
@@ -195,6 +201,7 @@
         </div>
     </div>
 
+    <!-- ROOM SELECTION ACTION OVERLAY WITH MAPPED OUTER DISMISSAL DISPATCH HOOKS -->
     <div id="custom-modal" class="modal-overlay hidden">
         <div class="modal-box">
             <h3 id="modal-title">Select Action</h3>

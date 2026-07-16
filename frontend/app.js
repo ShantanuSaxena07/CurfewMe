@@ -1,12 +1,12 @@
 /**
- * curfew. - Consolidated Production Frontend Engine
+ * curfew. - High-End Real-Time Frontend Engine
  */
 
 const SERVER_URL = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1"
     ? "http://localhost:8080"
     : "https://curfewme-backend.onrender.com";
 
-const IS_DEV_MODE = true;
+const IS_DEV_MODE = false;
 
 let socket = null;
 let currentRoomCode = null;
@@ -23,28 +23,23 @@ const UI = {
     tabGroups: document.getElementById('tab-trigger-groups'),
     tabDMs: document.getElementById('tab-trigger-dms'),
     tabIndicator: document.getElementById('sliding-active-tab-indicator'),
-    // Embedded Custom About Overlay Layer Mappings
     aboutModal: document.getElementById('about-platform-modal'),
     aboutCloseBtn: document.getElementById('about-close-modal-btn'),
     sidebarTriggerAbout: document.getElementById('sidebar-trigger-about'),
     sidebarTriggerFeedback: document.getElementById('sidebar-trigger-feedback'),
-    // Context DM naming dialog
     dmModal: document.getElementById('dm-naming-modal'),
     dmInput: document.getElementById('dm-custom-name-input'),
     dmCancel: document.getElementById('dm-name-cancel'),
     dmConfirm: document.getElementById('dm-name-confirm'),
-    // Identity Splash Card
     splashModal: document.getElementById('identity-splash-modal'),
     splashHero: document.getElementById('splash-hero-name'),
     splashPowers: document.getElementById('splash-powers-text'),
     splashDesc: document.getElementById('splash-desc-text'),
     splashClose: document.getElementById('splash-close-btn'),
-    // Feedback panel elements
     feedbackModal: document.getElementById('feedback-modal'),
     feedbackText: document.getElementById('feedback-textbox-area'),
     feedbackCancel: document.getElementById('feedback-cancel-btn'),
     feedbackSubmit: document.getElementById('feedback-submit-btn'),
-    // Context Actions Menu Sheet
     contextModal: document.getElementById('context-action-modal'),
     contextTitle: document.getElementById('context-action-title'),
     contextDM: document.getElementById('context-trigger-dm'),
@@ -163,10 +158,11 @@ async function fetchIdentitySecurely() {
         const data = await response.json();
         currentUser.alias = data.name;
         DOM.userAlias.innerText = currentUser.alias;
+        
         if (data.isNew) {
             UI.splashHero.innerText = data.name;
+            UI.splashDesc.innerText = data.description || "No description matrix logs verified.";
             UI.splashPowers.innerText = data.powers || "Unknown Variant";
-            UI.splashDesc.innerText = data.description || "No cosmic matrix database logs.";
             UI.splashModal.classList.remove('hidden');
         }
         renderPersistentRoomTabs();
@@ -183,7 +179,7 @@ async function fetchIdentitySecurely() {
     }
 }
 
-// --- 3. FULL-WIDTH SWITCH SLIDER TAB TRANSLATIONS ---
+// --- 3. DYNAMIC ROUND SWITCH SLIDER HANDLERS ---
 UI.tabGroups.addEventListener('click', () => {
     currentActiveViewTab = "groups";
     UI.tabIndicator.style.transform = "translateX(0%)";
@@ -249,9 +245,9 @@ async function renderPersistentRoomTabs() {
     }
 }
 
-// --- 4. SIDEBAR DRAWER INTERACTION PATHWAYS ---
+// --- 4. SIDEBAR MECHANICS ---
 UI.openSidebarBtn.addEventListener('click', (e) => {
-    e.stopPropagation(); // Stop window bubble
+    e.stopPropagation();
     UI.sidebar.classList.remove('drawer-closed');
     UI.sidebar.classList.add('drawer-open');
 });
@@ -261,17 +257,24 @@ UI.closeSidebarBtn.addEventListener('click', () => {
     UI.sidebar.classList.add('drawer-closed');
 });
 
-// 🛠️ CLOSE SIDEBAR AUTOMATICALLY UPON CLICKING OUTSIDE BOUNDARIES
+// --- 5. 🛠️ UNIVERSAL LAYER DROPDOWN OUTER DISMISSAL DISPATCH MATRIX ---
 window.addEventListener('click', (e) => {
+    // Dismiss Sidebar
     if (UI.sidebar.classList.contains('drawer-open')) {
         if (!UI.sidebar.contains(e.target) && e.target !== UI.openSidebarBtn) {
             UI.sidebar.classList.remove('drawer-open');
             UI.sidebar.classList.add('drawer-closed');
         }
     }
+    // Dismiss Create/Join Room Panel Container Automatically on Outside Click
+    if (!DOM.customModal.classList.contains('hidden')) {
+        const structuralModalBoxElement = DOM.customModal.querySelector('.modal-box');
+        if (structuralModalBoxElement && !structuralModalBoxElement.contains(e.target) && e.target !== DOM.openModalBtn) {
+            DOM.customModal.classList.add('hidden');
+        }
+    }
 });
 
-// EMBEDDED CUSTOM ABOUT SCREEN OVERLAY TRIGGER
 UI.sidebarTriggerAbout.addEventListener('click', () => {
     UI.sidebar.classList.remove('drawer-open');
     UI.sidebar.classList.add('drawer-closed');
@@ -302,7 +305,7 @@ UI.feedbackSubmit.addEventListener('click', async () => {
     }
 });
 
-// --- 5. TIMED LONG PRESS CAPABILITIES CONTROLLER ---
+// --- 6. TIMED LONG PRESS META CONTROLS ---
 function registerLongPressUserMeta(metaNode, messageSenderSig, messageSenderName) {
     let pressTimer = null;
     const fireOptionDialogue = () => {
@@ -357,7 +360,7 @@ UI.contextReport.addEventListener('click', async () => {
         });
         const data = await response.json();
         if (data.evicted) {
-            alert(`User ${activeLongPressContextUser.name} has crossed the 30% limit and has been restricted from the channel lounge space.`);
+            alert(`User ${activeLongPressContextUser.name} has crossed the 30% limit and has been banned.`);
         } else {
             alert(data.message || "Democratic report filed successfully.");
         }
@@ -368,7 +371,7 @@ UI.contextReport.addEventListener('click', async () => {
     }
 });
 
-// --- 6. SOCKET CLUSTER HANDLING SYSTEMS ---
+// --- 7. SOCKET HANDLING DECK ---
 function initializeRealTimeSocket() {
     if (typeof io === 'undefined') return;
     socket = io(SERVER_URL);
@@ -398,7 +401,7 @@ function initializeRealTimeSocket() {
     });
 }
 
-// --- 7. INTEGRATED VIEWPORT CORE INTERACTION ENGINE ---
+// --- 8. SYMMETRIC INTEGRATED CHAT VIEW INTERFACES ---
 async function joinActiveChannel(roomCode, roomName) {
     currentRoomCode = roomCode;
     UI.openSidebarBtn.style.display = "none";
@@ -490,7 +493,7 @@ DOM.leaveChatBtn.addEventListener('click', () => {
     renderPersistentRoomTabs();
 });
 
-// --- 8. SYSTEM BURN RESET WARNING TICKER ---
+// --- 9. RESET TIME COUNTER WARNINGS ---
 function checkSystemMeltdownWarning() {
     if (IS_DEV_MODE) return;
     const now = new Date();
@@ -510,7 +513,6 @@ function checkSystemMeltdownWarning() {
     }
 }
 
-// --- 9. AUXILIARY MODAL FLOW MANAGERS ---
 function resetModalLayout() {
     currentModalState = 'choice';
     DOM.modalTitle.innerText = "Select Action";
@@ -524,7 +526,7 @@ function resetModalLayout() {
     DOM.modalInput.removeAttribute('maxlength');
 }
 
-DOM.openModalBtn.addEventListener('click', () => { resetModalLayout(); DOM.customModal.classList.remove('hidden'); });
+DOM.openModalBtn.addEventListener('click', (e) => { e.stopPropagation(); resetModalLayout(); DOM.customModal.classList.remove('hidden'); });
 DOM.modalCancel.addEventListener('click', () => DOM.customModal.classList.add('hidden'));
 DOM.modalInput.addEventListener('input', () => DOM.modalErrorText.classList.add('hidden'));
 UI.splashClose.addEventListener('click', () => UI.splashModal.classList.add('hidden'));
@@ -596,7 +598,7 @@ document.getElementById('leave-modal-confirm').addEventListener('click', () => {
     currentRoomCode = null; renderPersistentRoomTabs();
 });
 
-// --- 10. INPUT TRANSMISSIONS AND CANVAS SECURITY ---
+// --- 10. COMMUNICATIONS AND CAMERA BLOCKS ---
 function linkifyText(text) {
     const urlPattern = /(\b(https?|ftp|file):\/\/[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|])/ig;
     return text.replace(urlPattern, '<a href="$1" target="_blank" class="msg-link">$1</a>');
