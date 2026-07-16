@@ -106,6 +106,14 @@ function monitorCurfew() {
     } else {
         lockDownApp();
         calculateCountdown(now);
+
+        // 🛠️ DISMISS LOADING SHIELD DURING THE DAY
+        if (UI.loaderOverlay && UI.loaderOverlay.style.display !== "none") {
+            UI.loaderOverlay.style.opacity = "0";
+            setTimeout(() => { 
+                UI.loaderOverlay.style.display = "none"; 
+            }, 400);
+        }
     }
 }
 
