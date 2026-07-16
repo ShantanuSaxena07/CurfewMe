@@ -276,49 +276,104 @@ body:not(.light-theme) .pill-slider:before {
     transition: transform 300ms cubic-bezier(0.25, 1, 0.5, 1);
 }
 
-/* --- 🛠️ SYMMETRIC INTEGRATED CHAT PANE ENVIRONMENT --- */
-.app-viewport-integrated {
-    display: flex;
-    width: 100%;
-    height: calc(100vh - 90px);
-    position: relative;
+/* --- FIXED SYMMETRIC INTEGRATED CHAT PANE ENVIRONMENT --- */
+.app-viewport-integrated { 
+    display: flex; 
+    width: 100%; 
+    height: calc(100vh - 90px); 
+    position: relative; 
 }
 
-.view-panel-dashboard {
-    width: 100%;
-    height: 100%;
-    padding: 24px;
-    display: flex;
-    flex-direction: column;
-    overflow-y: auto;
+.view-panel-chat { 
+    width: 100%; 
+    height: 100%; 
+    display: flex; 
+    background: var(--bg-primary); 
 }
 
-.view-panel-chat {
+/* --- FIXED BOTTOM-LOCKED CHAT INPUT DECK --- */
+.chat-inner-workspace { 
+    flex: 1; 
+    display: flex; 
+    flex-direction: column; 
+    height: 100%; 
     width: 100%;
-    height: 100%;
-    display: flex;
-    background: var(--bg-primary);
+    justify-content: space-between; /* Forces children to spread top-to-bottom */
 }
 
-.chat-inner-workspace {
+.chat-viewport-wrapper {
     flex: 1;
+    width: 100%;
     display: flex;
     flex-direction: column;
-    height: 100%;
+    position: relative;
+    overflow: hidden; /* Prevents text overflow bubbles from expanding the container */
+}
+
+.chat-messages-stream-integrated {
+    flex: 1;
+    overflow-y: auto;
+    padding: 24px 30px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
     width: 100%;
 }
 
-.chat-header-pane {
-    height: 72px;
-    background: var(--bg-secondary);
-    border-bottom: 1px solid var(--border-color);
+/* Forces the input dock deck to align perfectly flush to the bottom floor edge */
+.chat-input-dock-integrated { 
+    padding: 20px 30px; 
+    background: var(--bg-secondary); 
+    border-top: 1px solid var(--border-color); 
+    display: flex; 
+    align-items: center; 
+    gap: 16px; 
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 0 30px;
-    z-index: 10;
+    width: 100%;
+    margin-top: auto; /* Guarantees layout lock at the bottom of the viewport */
+}
+
+/* --- FIXED SPEECH BUBBLE ALIGNMENT RADII --- */
+.msg-wrapper { 
+    display: flex; 
+    flex-direction: column; 
+    max-width: 65%; 
+    width: fit-content; 
+    margin-bottom: 4px; 
+}
+
+/* Incoming bubbles snap cleanly to the left boundary wall */
+.msg-wrapper.incoming { 
+    align-self: flex-start !important; 
+    align-items: flex-start !important; 
+    margin-right: auto;
+}
+
+/* Outgoing bubbles snap cleanly to the right boundary wall */
+.msg-wrapper.outgoing { 
+    align-self: flex-end !important; 
+    align-items: flex-end !important; 
+    margin-left: auto;
+}
+
+.msg-meta { 
+    font-size: 0.72rem; 
+    font-weight: 800; 
+    color: var(--text-muted); 
+    text-transform: uppercase; 
+    letter-spacing: 0.06em; 
+    margin-bottom: 4px; 
+    user-select: none; 
+}
+
+.msg-bubble { 
+    padding: 12px 18px; 
+    border-radius: 18px; 
+    font-size: 0.98rem; 
+    line-height: 1.45; 
+    word-break: break-word; 
+    font-weight: 500; 
 }
 
 /* 🛠️ Symmetrical wrapper handles alignment across multiple aspect ratios */
