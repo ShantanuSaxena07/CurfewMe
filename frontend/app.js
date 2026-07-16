@@ -6,7 +6,7 @@ const SERVER_URL = window.location.hostname === "localhost" || window.location.h
     ? "http://localhost:8080"
     : "https://curfewme-backend.onrender.com";
 
-const IS_DEV_MODE = false;
+const IS_DEV_MODE = true;
 
 let socket = null;
 let currentRoomCode = null;
