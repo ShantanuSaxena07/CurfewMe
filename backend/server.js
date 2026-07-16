@@ -21,7 +21,6 @@ const io = new Server(server, {
 
 const PORT = process.env.PORT || 8080;
 
-// --- CONFIGURATION MANAGEMENT ---
 const OPEN_HOUR = 19;  
 const CLOSE_HOUR = 4;  
 const IS_DEV_MODE = true; 
@@ -35,7 +34,7 @@ function checkCurfewStatus() {
     return (currentHour >= OPEN_HOUR && currentHour < CLOSE_HOUR);
 }
 
-// --- DATABASE CONNECTIVITY (FORCE EXPLICIT TARGET) ---
+// --- DATABASE CONNECTIVITY ---
 mongoose.connect(process.env.MONGODB_URI, { dbName: 'Curfew' })
     .then(() => console.log('Successfully established secure connection to MongoDB Atlas [Target: Curfew].'))
     .catch(err => console.error('CRITICAL DATABASE ERROR:', err.message));
@@ -114,6 +113,24 @@ app.post('/api/create-room', async (req, res) => {
         res.status(201).json({ roomCode: uniqueCode, roomName: newRoom.roomName });
     } catch (error) {
         res.status(500).json({ error: "Internal processing error." });
+    }
+});
+
+// --- 2. EXISTING DIRECT CHANNEL ROUTING INDEX VERIFIER ---
+app.get('/api/check-existing-dm', async (req, res) => {
+    const { sigA, sigB } = req.query;
+    if (!sigA || !sigB) return res.status(400).json({ error: "Participants flags missing." });
+    try {
+        const lane = await Room.findOne({
+            isDM: true,
+            participants: { $all: [sigA, sigB] }
+        });
+        if (lane) {
+            return res.json({ exists: true, roomCode: lane.roomCode, roomName: lane.roomName });
+        }
+        res.json({ exists: false });
+    } catch(err) {
+        res.status(500).json({ error: "Internal database query error." });
     }
 });
 
@@ -274,7 +291,7 @@ io.on('connection', (socket) => {
     });
 });
 
-// --- AUTOMATED 4 AM PURGE PIPELINE (IST ENGINE RUNS IN ALL MODES) ---
+// --- AUTOMATED 4 AM PURGE PIPELINE ---
 let lastPurgeDate = null;
 setInterval(async () => {
     const now = new Date();

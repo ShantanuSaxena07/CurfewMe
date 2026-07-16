@@ -1,4 +1,4 @@
-/* --- APP PARAMETERS SPEC MATRIX --- */
+/* --- APP PARAMETERS DECK --- */
 :root {
     --bg-primary: #0B0C10;
     --bg-secondary: rgba(26, 29, 38, 0.65);
@@ -6,22 +6,20 @@
     --bg-knob: #8C94A5;
     --icon-inactive: #3B4150;
     --icon-active: #C1C7D6;
-    --bg-bubble-in: rgba(33, 38, 50, 0.5);
+    --bg-bubble-in: rgba(33, 38, 50, 0.55);
     --bg-bubble-out: #1F2833;
     --text-main: #F5F7FA;
     --text-muted: #7A8499;
     --border-color: rgba(255, 255, 255, 0.05);
     --radius-main: 16px;
 
-    /* Rounded Segment Switch Base Colors */
     --switch-track: #15181F;
     --switch-thumb: #212632;
     --switch-text-active: #FFFFFF;
 
-    /* Translucent Sidebar Options Parameters */
-    --sidebar-glass: rgba(18, 20, 26, 0.7);
+    --sidebar-glass: rgba(18, 20, 26, 0.75);
     --sidebar-border: rgba(255, 255, 255, 0.04);
-    --sidebar-item-hover: rgba(255, 255, 255, 0.04);
+    --sidebar-item-hover: rgba(255, 255, 255, 0.05);
 }
 
 body.light-theme {
@@ -31,21 +29,19 @@ body.light-theme {
     --bg-knob: #FFFFFF;
     --icon-inactive: #CBD5E1;
     --icon-active: #64748B;
-    --bg-bubble-in: rgba(226, 232, 240, 0.6);
+    --bg-bubble-in: rgba(226, 232, 240, 0.7);
     --bg-bubble-out: #1E293B;
     --text-main: #0F172A;
     --text-muted: #64748B;
     --border-color: rgba(15, 23, 42, 0.08);
 
-    /* Light Switch Caps Updates */
     --switch-track: #E2E7F0;
     --switch-thumb: #FFFFFF;
     --switch-text-active: #0F172A;
 
-    /* Light Translucent Sidebar Parameters */
-    --sidebar-glass: rgba(255, 255, 255, 0.85);
+    --sidebar-glass: rgba(255, 255, 255, 0.88);
     --sidebar-border: rgba(15, 23, 42, 0.06);
-    --sidebar-item-hover: rgba(15, 23, 42, 0.04);
+    --sidebar-item-hover: rgba(15, 23, 42, 0.05);
 }
 
 * {
@@ -90,7 +86,7 @@ html {
     background-color: var(--bg-primary);
 }
 
-/* --- COUNTDOWN DECK --- */
+/* --- TIMELINE COUNTER LOCK --- */
 .lockout-container {
     text-align: center;
     padding: 30px;
@@ -128,7 +124,7 @@ html {
     font-weight: 500;
 }
 
-/* --- APP GLASSMORPHIC HEADER --- */
+/* --- HEADER CONTROL MATRIX --- */
 .app-header {
     min-height: 90px;
     background-color: var(--bg-secondary);
@@ -164,7 +160,6 @@ html {
     letter-spacing: 0.08em;
 }
 
-/* --- THEME TOGGLE OVERLAY --- */
 .neumorphic-toggle-container {
     display: flex;
     align-items: center;
@@ -178,7 +173,6 @@ html {
     color: var(--icon-inactive);
 }
 
-/* 4. COMFORTABLE SUN VECTOR THEME COLOR RULES */
 body.light-theme .sun-icon {
     color: #FF9500 !important;
     filter: drop-shadow(0 0 8px rgba(255, 149, 0, 0.45));
@@ -230,14 +224,13 @@ body:not(.light-theme) .pill-slider:before {
     transform: translateX(26px);
 }
 
-/* --- 4 & 5. GEOMETRICALLY ROUNDED SEGMENT SWITCH SLIDER DECK --- */
+/* --- SWITCH SEGMENT BUTTON TRACKS --- */
 .fullscreen-switch-track-container-round {
     position: relative;
     width: 100%;
     height: 56px;
     background: var(--switch-track);
     border-radius: 30px;
-    /* Forces round caps formatting */
     display: flex;
     padding: 5px;
     margin-bottom: 24px;
@@ -270,13 +263,12 @@ body:not(.light-theme) .pill-slider:before {
     height: calc(100% - 10px);
     background: var(--switch-thumb);
     border-radius: 25px;
-    /* Symmetrically follows tracking track cap */
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
     z-index: 1;
     transition: transform 300ms cubic-bezier(0.25, 1, 0.5, 1);
 }
 
-/* --- 5. EDGE-TO-EDGE BALANCED VISUAL EXPANSION ENVIRONMENT --- */
+/* --- DYNAMIC SYMMETRIC INTERFACE ENVIRONMENTS --- */
 .app-viewport-integrated {
     display: flex;
     width: 100%;
@@ -284,7 +276,7 @@ body:not(.light-theme) .pill-slider:before {
     position: relative;
 }
 
-.app-header.hidden ~ .app-viewport-integrated {
+.app-header.hidden~.app-viewport-integrated {
     height: 100vh;
 }
 
@@ -326,7 +318,6 @@ body:not(.light-theme) .pill-slider:before {
     z-index: 10;
 }
 
-/* 5. REMOVED RESTRICTIVE CENTERING CARD AND GRANTED EDGE-TO-EDGE FREEDOM */
 .chat-viewport-wrapper {
     flex: 1;
     width: 100%;
@@ -336,6 +327,7 @@ body:not(.light-theme) .pill-slider:before {
     overflow: hidden;
 }
 
+/* 3. SCROLL FIX: ENSURE MESSAGE BLOCKS ALLOW TOUCH-MOVE CAPABILITIES PASS-THROUGH NATIVELY ON MOBILE DEVICES */
 .chat-messages-stream-integrated {
     flex: 1;
     overflow-y: auto;
@@ -344,31 +336,61 @@ body:not(.light-theme) .pill-slider:before {
     flex-direction: column;
     gap: 16px;
     width: 100%;
+    -webkit-overflow-scrolling: touch;
+    /* Forces hardware acceleration on iOS devices */
+    touch-action: pan-y !important;
+    /* Explicitly lets vertical touch drags pass through message layers */
 }
 
-/* --- SPEECH BUBBLE ALIGNMENT PARAMETERS --- */
+/* --- 1. EXPLOSIVE HIGH-SATURATION EMBER BURN LOGIC SPECS --- */
+@keyframes sparkBurnMeltdown {
+    0% {
+        transform: scale(1);
+        filter: brightness(1) saturate(1) blur(0px);
+        opacity: 1;
+    }
+
+    30% {
+        transform: scale(1.02);
+        filter: brightness(1.8) drop-shadow(0 0 10px #FF4500) blur(1px);
+        background: #FF4500;
+    }
+
+    100% {
+        transform: scale(0.8) translateY(-40px);
+        filter: brightness(3) drop-shadow(0 0 30px #FF1A00) blur(12px);
+        opacity: 0;
+    }
+}
+
+.msg-wrapper.burning {
+    animation: sparkBurnMeltdown 750ms cubic-bezier(0.4, 0, 0.2, 1) forwards !important;
+    pointer-events: none !important;
+}
+
+/* --- CHAT ARRAYS LAYOUT PACKS --- */
 .msg-wrapper {
     display: flex;
     flex-direction: column;
     max-width: 65%;
     width: fit-content;
     margin-bottom: 4px;
+    pointer-events: auto;
 }
 
-/* Incoming bubbles align cleanly to the left wall */
 .msg-wrapper.incoming {
     align-self: flex-start !important;
     align-items: flex-start !important;
     margin-right: auto;
 }
 
-/* Outgoing bubbles align cleanly to the right wall */
 .msg-wrapper.outgoing {
     align-self: flex-end !important;
     align-items: flex-end !important;
     margin-left: auto;
 }
 
+/* 3. SCROLL FIX: PREVENT PREMATURE CLICK TRAPS ON MESSAGE PACKS VIA EXPLICIT POINTER ACTION SPLITS */
 .msg-meta {
     font-size: 0.72rem;
     font-weight: 800;
@@ -377,7 +399,9 @@ body:not(.light-theme) .pill-slider:before {
     letter-spacing: 0.06em;
     margin-bottom: 4px;
     cursor: pointer;
-    user-select: none;
+    pointer-events: auto;
+    position: relative;
+    z-index: 5;
 }
 
 .msg-meta:hover {
@@ -391,6 +415,8 @@ body:not(.light-theme) .pill-slider:before {
     line-height: 1.45;
     word-break: break-word;
     font-weight: 500;
+    pointer-events: none;
+    /* Let drag-scroll bypass text card and trigger the message container stream directly */
 }
 
 .incoming .msg-bubble {
@@ -405,17 +431,7 @@ body:not(.light-theme) .pill-slider:before {
     border-top-right-radius: 4px;
 }
 
-body.light-theme .incoming .msg-bubble {
-    background-color: #E2E8F0;
-    color: #0F172A;
-}
-
-body.light-theme .outgoing .msg-bubble {
-    background-color: #0F172A;
-    color: #FFFFFF;
-}
-
-/* --- 3. WIDE BACK NAVIGATION ARROW DIMENSIONS --- */
+/* --- RESTORED COMFORTABLE BACK NAVIGATION BUTTON --- */
 .back-navigation-btn-restored {
     background: transparent;
     border: none;
@@ -461,14 +477,14 @@ body.light-theme .outgoing .msg-bubble {
     background: rgba(255, 59, 48, 0.08);
 }
 
-/* --- INPUT DECK LOCKED TO FOOTER FLOOR --- */
-.chat-input-dock-integrated { 
-    padding: 16px 24px; 
-    background: var(--bg-secondary); 
-    border-top: 1px solid var(--border-color); 
-    display: flex; 
-    align-items: center; 
-    gap: 16px; 
+/* --- CHAT INPUT BAR DOCK --- */
+.chat-input-dock-integrated {
+    padding: 16px 24px;
+    background: var(--bg-secondary);
+    border-top: 1px solid var(--border-color);
+    display: flex;
+    align-items: center;
+    gap: 16px;
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
     width: 100%;
@@ -498,24 +514,34 @@ body.light-theme .integrated-input-wrapper {
     color: var(--text-muted);
 }
 
-.integrated-input-wrapper input {
+/* 6. AUTO-GROWABLE EXPANDING CHAT TEXTAREA LAYER */
+.integrated-input-wrapper textarea {
     flex: 1;
     background: transparent;
     border: none;
     padding: 10px 0;
     color: var(--text-main);
     font-size: 0.98rem;
+    resize: none;
+    max-height: 100px;
+    line-height: 1.4;
+    overflow-y: auto;
 }
 
-.integrated-input-wrapper input:focus {
+.integrated-input-wrapper textarea:focus {
     outline: none;
 }
 
-/* 2. ROUND BLUE SEND ICON SPEC SHEET */
+/* 4. COMPATIBLE FULL CIRCLE BLUE SEND ACTION ENGINES FOR MOBILE VIEWS */
 .dock-send-btn-round-blue {
     width: 46px;
     height: 46px;
-    border-radius: 50%;
+    min-width: 46px;
+    min-height: 46px;
+    /* Explicit minimum parameters isolate shape distortion across devices */
+    border-radius: 50% !important;
+    -webkit-appearance: none;
+    appearance: none;
     background: #007AFF;
     border: none;
     display: flex;
@@ -524,6 +550,7 @@ body.light-theme .integrated-input-wrapper {
     cursor: pointer;
     box-shadow: 0 4px 14px rgba(0, 122, 255, 0.35);
     transition: all 200ms ease;
+    padding: 0;
 }
 
 .dock-send-btn-round-blue:hover {
@@ -538,7 +565,7 @@ body.light-theme .integrated-input-wrapper {
     transform: translate(-1px, 1px);
 }
 
-/* --- 2. PREMIUM HIGH-END TRANSLUCENT SIDEBAR PANEL --- */
+/* --- 5. AESTHETIC OUTLINE MENU SIDEBAR DRAWER --- */
 .app-sidebar-panel {
     position: fixed;
     top: 0;
@@ -556,10 +583,6 @@ body.light-theme .integrated-input-wrapper {
     gap: 36px;
     box-shadow: 25px 0 60px rgba(0, 0, 0, 0.35);
     transition: transform 400ms cubic-bezier(0.16, 1, 0.3, 1);
-}
-
-body.light-theme .app-sidebar-panel {
-    box-shadow: 25px 0 60px rgba(15, 23, 42, 0.04);
 }
 
 .app-sidebar-panel.drawer-closed {
@@ -623,7 +646,69 @@ body.light-theme .app-sidebar-panel {
     transform: translateX(4px);
 }
 
-/* --- CHANNELS CARDS GRID --- */
+/* Clean outline dimension caps for vector icon inserts */
+.sidebar-outline-svg {
+    width: 20px;
+    height: 20px;
+    color: var(--text-muted);
+    transition: color 200ms ease;
+}
+
+.sidebar-item-link:hover .sidebar-outline-svg {
+    color: #007AFF;
+}
+
+/* --- 2. SMOOTH SLIDING WHATSAPP LOOK INLINE ACTIONS LAYER CONTEXT PANEL --- */
+.inline-context-control-bar {
+    display: flex;
+    gap: 8px;
+    animation: slideInDeck 250ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    margin-top: 4px;
+}
+
+@keyframes slideInDeck {
+    from {
+        opacity: 0;
+        transform: translateY(-4px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.inline-action-bubble-btn {
+    background: var(--bg-track);
+    border: 1px solid var(--border-color);
+    color: var(--text-main);
+    font-size: 0.78rem;
+    font-weight: 700;
+    padding: 6px 14px;
+    border-radius: 14px;
+    cursor: pointer;
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+    transition: all 150ms ease;
+}
+
+.inline-action-bubble-btn.dm-accent {
+    background: #007AFF;
+    color: #FFF;
+    border-color: transparent;
+}
+
+.inline-action-bubble-btn.report-accent {
+    background: rgba(255, 59, 48, 0.1);
+    color: #FF3B30;
+    border-color: rgba(255, 59, 48, 0.2);
+}
+
+.inline-action-bubble-btn:hover {
+    transform: scale(1.03);
+}
+
+/* --- GROUP CARD TILES FEED --- */
 .groups-grid-integrated {
     display: flex;
     flex-direction: column;
@@ -705,7 +790,7 @@ body.light-theme .floating-action-btn {
     color: #FFFFFF;
 }
 
-/* --- MODALS SHEETS MATRIX --- */
+/* --- SYSTEM OVERLAYS MODALS --- */
 .modal-overlay {
     position: fixed;
     top: 0;
@@ -849,7 +934,43 @@ body.light-theme .btn-primary {
     border-radius: 8px;
 }
 
-/* --- 6. TRANSLUCENT GLASSMORPHIC INITIALIZATION SHIELD LOADER --- */
+/* --- 7. RESTORED PREMIUM AESTHETIC WRAPPER FOR GENERATED ROOM CODES --- */
+.code-copy-wrapper-restored {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: var(--bg-primary);
+    border: 1px solid var(--border-color);
+    padding: 14px 20px;
+    border-radius: 14px;
+    margin-top: 16px;
+}
+
+#generated-code-display {
+    font-family: "SF Mono", monospace;
+    font-size: 1.4rem;
+    font-weight: 800;
+    color: #34C759;
+    letter-spacing: 0.05em;
+}
+
+.copy-action-btn-restored {
+    background: #007AFF;
+    color: #FFF;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-size: 0.85rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background 150ms ease;
+}
+
+.copy-action-btn-restored:hover {
+    background: #0055B3;
+}
+
+/* --- GLASSMORPHIC INITIALIZATION SHIELD LOADER --- */
 .global-loader-glassmorphic {
     position: fixed;
     top: 0;
@@ -857,15 +978,15 @@ body.light-theme .btn-primary {
     width: 100vw;
     height: 100vh;
     background: rgba(11, 12, 16, 0.45);
-    backdrop-filter: blur(25px) cubic-bezier(0.1, 1, 0.1, 1);
-    -webkit-backdrop-filter: blur(25px) cubic-bezier(0.1, 1, 0.1, 1);
+    backdrop-filter: blur(25px);
+    -webkit-backdrop-filter: blur(25px);
     z-index: 999999;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
     gap: 20px;
-    transition: opacity 400ms cubic-bezier(0.25, 1, 0.5, 1);
+    transition: opacity 400ms ease;
 }
 
 body.light-theme .global-loader-glassmorphic {

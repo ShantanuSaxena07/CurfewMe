@@ -2,20 +2,20 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-select=none">
     <title>CurfewMe</title>
     <link rel="stylesheet" href="style.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.5/socket.io.min.js"></script>
 </head>
 <body>
 
-    <!-- 6. PREMIUM BLURRED GLASSMORPHIC SCREEN LOAD SHIELD -->
+    <!-- GLASSMORPHIC INITIALIZATION SHIELD LOADER -->
     <div id="global-loader-overlay" class="global-loader-glassmorphic">
         <div class="spinner-core"></div>
         <div class="loader-title-text">Establishing Encrypted Operational Link...</div>
     </div>
 
-    <!-- DAYTIME LOCKOUT SCREEN -->
+    <!-- DAYTIME LOCKOUT TIMELINE SCREEN -->
     <div id="day-screen" class="screen day-bg hidden">
         <div class="lockout-container">
             <h1 class="lockout-logo">CurfewMe</h1>
@@ -25,18 +25,26 @@
         </div>
     </div>
 
-    <!-- NIGHTTIME CHAT APP ACTIVE UI -->
+    <!-- NIGHTTIME LIVE COMMUNICATION STREAM VIEWPORT -->
     <div id="night-screen" class="screen night-bg hidden">
         
-        <!-- 2. STYLISH TRANSBORDERS NAVIGATION SIDEBAR -->
+        <!-- SIDEBAR DRAWER WITH OUTLINE VECTOR ARCHITECTURES -->
         <div id="app-hamburger-sidebar" class="app-sidebar-panel drawer-closed">
             <div class="sidebar-header">
                 <h3>Options Menu</h3>
                 <button id="close-sidebar-btn" class="sidebar-close-x-btn">×</button>
             </div>
             <div class="sidebar-links-list">
-                <button id="sidebar-trigger-about" class="sidebar-item-link">📁 About Platform</button>
-                <button id="sidebar-trigger-feedback" class="sidebar-item-link">✍️ Submit Feedback</button>
+                <button id="sidebar-trigger-about" class="sidebar-item-link">
+                    <!-- OUTLINE VECTOR DRAWING FOR ABOUT NODE -->
+                    <svg class="sidebar-outline-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c5.523 0 9-4.477 9-9.5S17.523 3 12 3 3 7.477 3 12.5 6.477 22 12 22z"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
+                    About Platform
+                </button>
+                <button id="sidebar-trigger-feedback" class="sidebar-item-link">
+                    <!-- OUTLINE VECTOR DRAWING FOR FEEDBACK FORM TRIGGER -->
+                    <svg class="sidebar-outline-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                    Submit Feedback
+                </button>
             </div>
         </div>
 
@@ -52,7 +60,6 @@
             </div>
 
             <div class="neumorphic-toggle-container">
-                <!-- 4. ORIGINAL HIGH-CONTRAST SUN ICON VECTOR -->
                 <svg id="sun-vector-node" class="toggle-icon sun-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                     <circle cx="12" cy="12" r="5"></circle>
                     <line x1="12" y1="1" x2="12" y2="3"></line>
@@ -75,10 +82,8 @@
         </header>
 
         <main class="app-viewport-integrated">
-            <!-- PANEL A: HOME DASHBOARD HUB -->
+            <!-- PANEL A: DASHBOARD -->
             <section id="feed-view" class="view-panel-dashboard">
-                
-                <!-- 5. FULL SCREEN ROUND SEGMENT TAB SLIDER BUTTONS -->
                 <div class="fullscreen-switch-track-container-round">
                     <div id="sliding-active-tab-indicator" class="switch-slider-indicator-block-round"></div>
                     <button id="tab-trigger-groups" class="switch-action-tab-button active-text">Group Chats</button>
@@ -89,12 +94,11 @@
                 <button id="open-modal-btn" class="floating-action-btn" title="Create or Join Channel">+</button>
             </section>
 
-            <!-- PANEL B: SYMMETRIC INTEGRATED CHAT SPACE -->
+            <!-- PANEL B: CHAT WORKSPACE -->
             <section id="chat-view" class="view-panel-chat hidden">
                 <div class="chat-inner-workspace">
                     <div class="chat-header-pane">
                         <div style="display: flex; align-items: center; gap: 16px;">
-                            <!-- 3. RESTORED WIDE FORMAT COMFORTABLE BACK BUTTON -->
                             <button id="leave-chat-btn" class="back-navigation-btn-restored" title="Back to Channels">
                                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                                     <line x1="19" y1="12" x2="5" y2="12"></line>
@@ -106,7 +110,6 @@
                         <button id="leave-group-btn" class="leave-group-action-btn">Leave Group</button>
                     </div>
 
-                    <!-- 5. ALL-MARGIN EQUALIZED BALANCED VERTICAL WORKSPACE -->
                     <div class="chat-viewport-wrapper">
                         <div id="messages-container" class="chat-messages-stream-integrated"></div>
                     </div>
@@ -116,9 +119,9 @@
                             <button id="emoji-dock-trigger-btn" class="dock-inner-btn">😀</button>
                             <button id="attach-btn" class="dock-inner-btn">📎</button>
                             <input type="file" id="file-input" class="hidden" accept="image/*">
-                            <input type="text" id="chat-input" placeholder="Type a message..." autocomplete="off">
+                            <!-- 6. AUTO-EXPANDING MULTI-LINE GROWABLE INPUT AREA -->
+                            <textarea id="chat-input" placeholder="Type a message..." autocomplete="off" rows="1"></textarea>
                         </div>
-                        <!-- 2. SHAKEN COBALT BLUE GLOW ROUND SEND TOGGLE -->
                         <button id="send-btn" class="dock-send-btn-round-blue" title="Send Message">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                                 <line x1="22" y1="2" x2="11" y2="13"></line>
@@ -131,7 +134,7 @@
         </main>
     </div>
 
-    <!-- 7. CLEAN ELEGANT INTEGRATED FULL BOX FOR ABOUT SECTION -->
+    <!-- MODAL POPUP SHEET INJECTIONS -->
     <div id="about-platform-modal" class="modal-overlay hidden">
         <div class="modal-box text-left wide-modal-profile">
             <h3>About CurfewMe</h3>
@@ -146,7 +149,6 @@
         </div>
     </div>
 
-    <!-- 1. POWERS FLIPPED EXTENSION: RENDERED BENEATH DESCRIPTION -->
     <div id="identity-splash-modal" class="modal-overlay hidden">
         <div class="modal-box text-left">
             <div class="badge-tag">Today's Unveiling</div>
@@ -176,8 +178,8 @@
     <div id="dm-naming-modal" class="modal-overlay hidden">
         <div class="modal-box">
             <h3>Name this DM Channel</h3>
-            <p class="report-warning-body">Give this private room layout space a personalized identifier tag.</p>
-            <input type="text" id="dm-custom-name-input" placeholder="e.g. Private Chat Room">
+            <p class="report-warning-body">Give this private room layout space a personalized identifier tag before routing links.</p>
+            <input type="text" id="dm-custom-name-input" placeholder="e.g. Secret Workspace Channel">
             <div class="modal-actions">
                 <button class="btn-secondary" id="dm-name-cancel">Cancel</button>
                 <button class="btn-primary" id="dm-name-confirm">Open Chat</button>
@@ -185,18 +187,7 @@
         </div>
     </div>
 
-    <div id="context-action-modal" class="modal-overlay hidden">
-        <div class="modal-box">
-            <h3 id="context-action-title">Target Node</h3>
-            <div style="display: flex; flex-direction: column; gap: 12px; margin-top: 16px;">
-                <button class="btn-primary" id="context-trigger-dm" style="background:#007AFF; color:#fff;">💬 Start Private DM Conversation</button>
-                <button class="btn-primary" id="context-trigger-report" style="background:#FF3B30; color:#fff;">⚠️ Flag & Report Participant</button>
-                <button class="btn-secondary" id="context-trigger-cancel">Dismiss Options</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- 3. CREATE/JOIN COMPONENT MODAL PANEL -->
+    <!-- 7. RESTORED PREMIUM DESIGN FOR GROUP CODE GENERATION VIEWS -->
     <div id="custom-modal" class="modal-overlay hidden">
         <div class="modal-box">
             <h3 id="modal-title">Select Action</h3>
@@ -209,9 +200,9 @@
                 <div id="modal-error-text" class="modal-error-msg hidden">Invalid Code !!</div>
                 <div id="modal-success-view" class="hidden">
                     <p class="success-subtext">Share this security token link with your group:</p>
-                    <div class="code-copy-wrapper">
+                    <div class="code-copy-wrapper-restored">
                         <span id="generated-code-display">000000</span>
-                        <button id="copy-code-btn" class="copy-action-btn">Copy Code</button>
+                        <button id="copy-code-btn" class="copy-action-btn-restored">Copy Code</button>
                     </div>
                 </div>
             </div>

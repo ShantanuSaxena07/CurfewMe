@@ -11,8 +11,8 @@ const IS_DEV_MODE = true;
 let socket = null;
 let currentRoomCode = null;
 let currentUser = { alias: '' };
-let currentActiveViewTab = "groups"; 
-let activeLongPressContextUser = null; 
+let currentActiveViewTab = "groups";
+let activeLongPressContextUser = null;
 let isFetchingIdentity = false;
 let currentModalState = 'choice';
 
@@ -40,12 +40,7 @@ const UI = {
     feedbackModal: document.getElementById('feedback-modal'),
     feedbackText: document.getElementById('feedback-textbox-area'),
     feedbackCancel: document.getElementById('feedback-cancel-btn'),
-    feedbackSubmit: document.getElementById('feedback-submit-btn'),
-    contextModal: document.getElementById('context-action-modal'),
-    contextTitle: document.getElementById('context-action-title'),
-    contextDM: document.getElementById('context-trigger-dm'),
-    contextReport: document.getElementById('context-trigger-report'),
-    contextCancel: document.getElementById('context-trigger-cancel')
+    feedbackSubmit: document.getElementById('feedback-submit-btn')
 };
 
 const DOM = {
@@ -159,7 +154,7 @@ async function fetchIdentitySecurely() {
         const data = await response.json();
         currentUser.alias = data.name;
         DOM.userAlias.innerText = currentUser.alias;
-        
+
         if (data.isNew) {
             UI.splashHero.innerText = data.name;
             UI.splashDesc.innerText = data.description || "No description matrix logs verified.";
@@ -180,7 +175,7 @@ async function fetchIdentitySecurely() {
     }
 }
 
-// --- 4 & 5. ROUND SLIDER ACCENT TRANSLATIONS ---
+// --- TAB SLIDER NAVIGATION HANDLERS ---
 UI.tabGroups.addEventListener('click', () => {
     currentActiveViewTab = "groups";
     UI.tabIndicator.style.transform = "translateX(0%)";
@@ -246,7 +241,7 @@ async function renderPersistentRoomTabs() {
     }
 }
 
-// --- 2 & 3. DRAWER AND OVERLAY AUTO DISMISS DISPATCH PIPELINES ---
+// --- SIDEBAR DRAWER METHODS ---
 UI.openSidebarBtn.addEventListener('click', (e) => {
     e.stopPropagation();
     UI.sidebar.classList.remove('drawer-closed');
@@ -259,14 +254,12 @@ UI.closeSidebarBtn.addEventListener('click', () => {
 });
 
 window.addEventListener('click', (e) => {
-    // 2. Click outside sidebar triggers close
     if (UI.sidebar.classList.contains('drawer-open')) {
         if (!UI.sidebar.contains(e.target) && e.target !== UI.openSidebarBtn) {
             UI.sidebar.classList.remove('drawer-open');
             UI.sidebar.classList.add('drawer-closed');
         }
     }
-    // 3. Click outside create/join panel triggers close
     if (!DOM.customModal.classList.contains('hidden')) {
         const structuralBox = DOM.customModal.querySelector('.modal-box');
         if (structuralBox && !structuralBox.contains(e.target) && e.target !== DOM.openModalBtn) {
@@ -305,24 +298,80 @@ UI.feedbackSubmit.addEventListener('click', async () => {
     }
 });
 
-// --- TIMED LONG PRESS META CONFIGURATIONS ---
+// --- 2. INLINE SMOOTH ACTIONS DRAWER REGISTRATION LOOP ---
 function registerLongPressUserMeta(metaNode, messageSenderSig, messageSenderName) {
     let pressTimer = null;
-    const fireOptionDialogue = () => {
+
+    const triggerInlineContextBar = () => {
         if (messageSenderSig === getOrCreateFingerprintToken()) return;
+
+        // Remove old inline control bars if any are currently drawn
+        const oldBar = document.querySelector('.inline-context-control-bar');
+        if (oldBar) oldBar.remove();
+
         activeLongPressContextUser = { sig: messageSenderSig, name: messageSenderName };
-        UI.contextTitle.innerText = `Target Node: ${messageSenderName}`;
-        UI.contextModal.classList.remove('hidden');
+
+        // Generate the inline container element right beneath the user name tag
+        const actionContainer = document.createElement('div');
+        actionContainer.className = 'inline-context-control-bar';
+        actionContainer.innerHTML = `
+            <button class="inline-action-bubble-btn dm-accent">DM</button>
+            <button class="inline-action-bubble-btn report-accent">Report</button>
+        `;
+
+        // Wire immediate routing mechanics onto buttons
+        actionContainer.querySelector('.dm-accent').addEventListener('click', (e) => {
+            e.stopPropagation();
+            actionContainer.remove();
+            executeInlineDMLaneVerification();
+        });
+
+        actionContainer.querySelector('.report-accent').addEventListener('click', (e) => {
+            e.stopPropagation();
+            actionContainer.remove();
+            executeInlineReportSubmission();
+        });
+
+        // Append inline control deck directly inside message element scope without generic modal boxes
+        metaNode.parentNode.appendChild(actionContainer);
     };
-    metaNode.addEventListener('mousedown', () => { pressTimer = setTimeout(fireOptionDialogue, 500); });
+
+    metaNode.addEventListener('mousedown', () => { pressTimer = setTimeout(triggerInlineContextBar, 500); });
     metaNode.addEventListener('mouseup', () => { clearTimeout(pressTimer); });
     metaNode.addEventListener('mouseleave', () => { clearTimeout(pressTimer); });
-    metaNode.addEventListener('touchstart', () => { pressTimer = setTimeout(fireOptionDialogue, 500); });
+    metaNode.addEventListener('touchstart', () => { pressTimer = setTimeout(triggerInlineContextBar, 500); });
     metaNode.addEventListener('touchend', () => { clearTimeout(pressTimer); });
 }
 
-UI.contextCancel.addEventListener('click', () => { UI.contextModal.classList.add('hidden'); activeLongPressContextUser = null; });
-UI.contextDM.addEventListener('click', () => { UI.contextModal.classList.add('hidden'); UI.dmInput.value = ""; UI.dmModal.classList.remove('hidden'); });
+// 2. INLINE ROUTE ACTIONS EXECUTIONERS
+async function executeInlineDMLaneVerification() {
+    if (!activeLongPressContextUser) return;
+    const creatorSig = getOrCreateFingerprintToken();
+
+    try {
+        // Enforce a check response against backend map matrices
+        const checkResponse = await fetch(`${SERVER_URL}/api/check-existing-dm?sigA=${creatorSig}&sigB=${activeLongPressContextUser.sig}`);
+        const statusData = await checkResponse.json();
+
+        if (statusData.exists) {
+            // Already initialized previously -> skip dialog naming layers and redirect instantly
+            saveChannelToPersistence(statusData.roomCode, statusData.roomName, true);
+            currentActiveViewTab = "dms";
+            UI.tabIndicator.style.transform = "translateX(100%)";
+            UI.tabDMs.classList.add('active-text');
+            UI.tabGroups.classList.remove('active-text');
+            joinActiveChannel(statusData.roomCode, statusData.roomName);
+        } else {
+            // No direct route exists -> launch custom naming layout dialog box
+            UI.dmInput.value = "";
+            UI.dmModal.classList.remove('hidden');
+        }
+    } catch (err) {
+        console.error(err);
+    }
+}
+
+// Dedicated DM Confirmation Action Hook
 UI.dmCancel.addEventListener('click', () => UI.dmModal.classList.add('hidden'));
 UI.dmConfirm.addEventListener('click', async () => {
     const customDMName = UI.dmInput.value.trim();
@@ -347,9 +396,8 @@ UI.dmConfirm.addEventListener('click', async () => {
     }
 });
 
-UI.contextReport.addEventListener('click', async () => {
+async function executeInlineReportSubmission() {
     if (!activeLongPressContextUser || !currentRoomCode) return;
-    UI.contextModal.classList.add('hidden');
     const confirmReport = confirm(`Log a democratic moderation report against ${activeLongPressContextUser.name}?`);
     if (!confirmReport) return;
     try {
@@ -369,21 +417,25 @@ UI.contextReport.addEventListener('click', async () => {
     } finally {
         activeLongPressContextUser = null;
     }
-});
+}
 
-// --- SOCKET SYSTEM TUNNELS ---
+// --- SOCKET SYSTEM DECK ---
 function initializeRealTimeSocket() {
     if (typeof io === 'undefined') return;
     socket = io(SERVER_URL);
     socket.on('force-curfew-lock', () => lockDownApp());
     socket.on('receive-message', (msg) => displayMessage(msg));
+
+    // 1. DISPATCH CHOSEN BURNING ANIMATION SEQUENCES OVER TARGET TARGETS
     socket.on('message-burned', ({ messageId }) => {
         const targetedMsgCard = document.getElementById(messageId);
         if (targetedMsgCard) {
             targetedMsgCard.classList.add('burning');
-            setTimeout(() => targetedMsgCard.remove(), 800);
+            // Remove node structural document element once keyframe sequence cycle finishes running
+            setTimeout(() => targetedMsgCard.remove(), 750);
         }
     });
+
     socket.on('user-banned-broadcast', ({ roomCode, fingerprintId }) => {
         const currentLocalSig = localStorage.getItem('curfew_device_fingerprint');
         if (currentRoomCode === roomCode && currentLocalSig === fingerprintId) {
@@ -401,7 +453,7 @@ function initializeRealTimeSocket() {
     });
 }
 
-// --- 5. VISUAL VIEWPORT CORE ALIGNMENT PIPELINES ---
+// --- INTERACTIVE VIEWPORT DRIVERS ---
 async function joinActiveChannel(roomCode, roomName) {
     currentRoomCode = roomCode;
     UI.openSidebarBtn.style.display = "none";
@@ -493,7 +545,7 @@ DOM.leaveChatBtn.addEventListener('click', () => {
     renderPersistentRoomTabs();
 });
 
-// --- DAFTS TICKER WIPE WARNINGS ---
+// --- TIME ALERT METERS ---
 function checkSystemMeltdownWarning() {
     if (IS_DEV_MODE) return;
     const now = new Date();
@@ -608,6 +660,7 @@ function dispatchOutgoingMessage() {
     const clientSig = getOrCreateFingerprintToken();
     socket.emit('send-message', { roomCode: currentRoomCode, sender: currentUser.alias, senderSig: clientSig, text: text, type: 'text' });
     DOM.chatInput.value = '';
+    DOM.chatInput.rows = 1; // Reset grow height upon dispatch trigger
 }
 
 DOM.attachBtn.addEventListener('click', () => DOM.fileInput.click());
@@ -623,6 +676,13 @@ DOM.fileInput.addEventListener('change', (e) => {
         reader.readAsDataURL(file);
     }
     DOM.fileInput.value = '';
+});
+
+// 6. AUTO GROW HEIGHT INPUT METRICS LISTENER DECK
+DOM.chatInput.addEventListener('input', function () {
+    this.rows = 1; // Recalculate baseline floor bound bounds
+    const dynamicLineCheckCount = Math.floor(this.scrollHeight / 24);
+    this.rows = Math.min(Math.max(dynamicLineCheckCount, 1), 4);
 });
 
 window.addEventListener('blur', () => {
@@ -654,7 +714,7 @@ DOM.themeToggleCheckbox.addEventListener('change', () => {
 });
 
 DOM.sendBtn.addEventListener('click', dispatchOutgoingMessage);
-DOM.chatInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') dispatchOutgoingMessage(); });
+DOM.chatInput.addEventListener('keypress', (e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); dispatchOutgoingMessage(); } });
 
 initializeApplicationTheme();
 setInterval(() => { monitorCurfew(); checkSystemMeltdownWarning(); }, 1000);
