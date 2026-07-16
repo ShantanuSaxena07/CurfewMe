@@ -1,5 +1,5 @@
 /**
- * curfew. - Secure Production Backend Engine with Persistent DM Capacity
+ * curfew. - Secure Production Backend Engine
  */
 require('dotenv').config();
 const express = require('express');
@@ -24,7 +24,7 @@ const PORT = process.env.PORT || 8080;
 // --- CONFIGURATION MANAGEMENT ---
 const OPEN_HOUR = 19;  
 const CLOSE_HOUR = 4;  
-const IS_DEV_MODE = true; 
+const IS_DEV_MODE = false; 
 
 function checkCurfewStatus() {
     if (IS_DEV_MODE) return true;
@@ -40,7 +40,7 @@ mongoose.connect(process.env.MONGODB_URI, { dbName: 'Curfew' })
     .then(() => console.log('Successfully established secure connection to MongoDB Atlas [Target: Curfew].'))
     .catch(err => console.error('CRITICAL DATABASE ERROR:', err.message));
 
-// --- MONGOOSE SCHEMAS (CLEANED AND CONSOLIDATED) ---
+// --- MONGOOSE SCHEMAS ---
 const RoomSchema = new mongoose.Schema({
     roomCode: { type: String, required: true, unique: true, index: true },
     roomName: { type: String, required: true },
@@ -93,7 +93,6 @@ const FeedbackSchema = new mongoose.Schema({
 });
 const Feedback = mongoose.model('Feedback', FeedbackSchema);
 
-
 // --- SECURE DYNAMIC ROOM CREATION ENGINE ---
 app.post('/api/create-room', async (req, res) => {
     if (!checkCurfewStatus()) return res.status(403).json({ error: "Curfew is active." });
@@ -118,7 +117,7 @@ app.post('/api/create-room', async (req, res) => {
     }
 });
 
-// --- STRICT ROOM JOINING CHECK VALIDATOR (CLEAN CONSOLE VERSION) ---
+// --- STRICT ROOM JOINING CHECK VALIDATOR ---
 app.get('/api/verify-room/:code', async (req, res) => {
     if (!checkCurfewStatus()) {
         return res.json({ allowed: false, curfewActive: true, error: "Curfew is active." });
@@ -205,20 +204,10 @@ app.post('/api/get-identity', async (req, res) => {
 app.post('/api/create-dm', async (req, res) => {
     const { targetSig, roomName, creatorSig } = req.body;
     try {
-        let existingDM = await Room.findOne({
-            isDM: true,
-            participants: { $all: [creatorSig, targetSig] }
-        });
-        if (existingDM) {
-            return res.json({ roomCode: existingDM.roomCode, roomName: existingDM.roomName });
-        }
+        let existingDM = await Room.findOne({ isDM: true, participants: { $all: [creatorSig, targetSig] } });
+        if (existingDM) { return res.json({ roomCode: existingDM.roomCode, roomName: existingDM.roomName }); }
         const uniqueCode = "dm_" + String(Math.floor(100000 + Math.random() * 900000));
-        const newDM = new Room({
-            roomCode: uniqueCode,
-            roomName: roomName.trim(),
-            isDM: true,
-            participants: [creatorSig, targetSig]
-        });
+        const newDM = new Room({ roomCode: uniqueCode, roomName: roomName.trim(), isDM: true, participants: [creatorSig, targetSig] });
         await newDM.save();
         res.status(201).json({ roomCode: uniqueCode, roomName: newDM.roomName });
     } catch (err) {
@@ -243,10 +232,7 @@ app.post('/api/report-user', async (req, res) => {
     if (!roomCode || !targetSig || !reporterSig) return res.status(400).json({ error: "Missing required arguments parameters." });
     try {
         const existingReport = await Report.findOne({ roomCode, targetSig, reporterSig });
-        if (!existingReport) {
-            const newReport = new Report({ roomCode, targetSig, reporterSig });
-            await newReport.save();
-        }
+        if (!existingReport) { const newReport = new Report({ roomCode, targetSig, reporterSig }); await newReport.save(); }
         const directRoomCommunicators = await Message.find({ roomCode }).distinct('senderSig');
         const totalActiveGroupMembersCount = Math.max(directRoomCommunicators.length, 1); 
         const specificUniqueReportsCount = await Report.countDocuments({ roomCode, targetSig });
@@ -254,10 +240,7 @@ app.post('/api/report-user', async (req, res) => {
 
         if (structuralReportPercentageRatio >= 30) {
             const alreadyListed = await BanList.findOne({ roomCode, fingerprintId: targetSig });
-            if (!alreadyListed) {
-                const banEntry = new BanList({ roomCode, fingerprintId: targetSig });
-                await banEntry.save();
-            }
+            if (!alreadyListed) { const banEntry = new BanList({ roomCode, fingerprintId: targetSig }); await banEntry.save(); }
             io.to(roomCode).emit('user-banned-broadcast', { roomCode, fingerprintId: targetSig });
             return res.json({ evicted: true, message: "Participant has crossed the 30% ratio line and has been banned." });
         }
@@ -271,50 +254,35 @@ app.post('/api/report-user', async (req, res) => {
 io.on('connection', (socket) => {
     socket.on('join-room', ({ roomCode, userAlias }) => {
         socket.join(roomCode);
-        console.log(`User [${userAlias}] inside Channel: ${roomCode}`);
     });
-
     socket.on('send-message', async (msgData) => {
         try {
-            const loggedMsg = new Message({
-                roomCode: msgData.roomCode,
-                sender: msgData.sender,
-                senderSig: msgData.senderSig,
-                text: msgData.text,
-                type: msgData.type
-            });
+            const loggedMsg = new Message({ roomCode: msgData.roomCode, sender: msgData.sender, senderSig: msgData.senderSig, text: msgData.text, type: msgData.type });
             await loggedMsg.save();
-            io.to(msgData.roomCode).emit('receive-message', {
-                id: loggedMsg._id.toString(),
-                sender: loggedMsg.sender,
-                senderSig: loggedMsg.senderSig,
-                text: loggedMsg.text,
-                type: loggedMsg.type
-            });
+            io.to(msgData.roomCode).emit('receive-message', { id: loggedMsg._id.toString(), sender: loggedMsg.sender, senderSig: loggedMsg.senderSig, text: loggedMsg.text, type: loggedMsg.type });
         } catch (err) {
-            console.error("Failed to save message:", err.message);
+            console.error(err.message);
         }
     });
-
     socket.on('delete-message', async ({ roomCode, messageId }) => {
         try {
             await Message.findByIdAndDelete(messageId);
             io.to(roomCode).emit('message-burned', { messageId });
         } catch (err) {
-            console.error("Failed to delete message:", err.message);
+            console.error(err.message);
         }
     });
 });
 
-// --- AUTOMATED CRON-STYLE PURGE PIPELINE (IST ENGINE - PERSISTENT DM UPDATE) ---
+// --- AUTOMATED CRON-STYLE PURGE PIPELINE (IST ENGINE ON IN ALL MODES) ---
 let lastPurgeDate = null;
 
 setInterval(async () => {
-    if (IS_DEV_MODE) return; 
     const now = new Date();
     const currentHour = now.getHours();
     const todayString = now.toDateString();
 
+    // 🛠️ FIX: Runs perfectly in dev mode now so test messages drop at 4 AM automatically
     if (currentHour === CLOSE_HOUR && lastPurgeDate !== todayString) {
         console.log("🚀 CURFEW PURGE TRIGGERED: Initiating dynamic database cleanse...");
         try {
@@ -332,4 +300,4 @@ setInterval(async () => {
     }
 }, 10000);
 
-server.listen(PORT, () => console.log(`CurfewMe Secure Engine live on port ${PORT}`));
+server.listen(PORT, () => console.log(`CurfewMe Engine live on port ${PORT}`));

@@ -1,17 +1,17 @@
 /**
- * curfew. - High-End Real-Time Frontend Engine with Integrated Group & Private DM Capabilities
+ * curfew. - Consolidated Production Frontend Engine
  */
 
 const SERVER_URL = window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1"
     ? "http://localhost:8080"
     : "https://curfewme-backend.onrender.com";
 
-const IS_DEV_MODE = true;
+const IS_DEV_MODE = false;
 
 let socket = null;
 let currentRoomCode = null;
 let currentUser = { alias: '' };
-let currentActiveViewTab = "groups"; // Tracks dashboard context: "groups" vs "dms"
+let currentActiveViewTab = "groups"; 
 let activeLongPressContextUser = null; 
 let isFetchingIdentity = false;
 
@@ -22,10 +22,12 @@ const UI = {
     closeSidebarBtn: document.getElementById('close-sidebar-btn'),
     tabGroups: document.getElementById('tab-trigger-groups'),
     tabDMs: document.getElementById('tab-trigger-dms'),
-
+    tabIndicator: document.getElementById('sliding-active-tab-indicator'),
+    // Embedded Custom About Overlay Layer Mappings
+    aboutModal: document.getElementById('about-platform-modal'),
+    aboutCloseBtn: document.getElementById('about-close-modal-btn'),
     sidebarTriggerAbout: document.getElementById('sidebar-trigger-about'),
     sidebarTriggerFeedback: document.getElementById('sidebar-trigger-feedback'),
-
     // Context DM naming dialog
     dmModal: document.getElementById('dm-naming-modal'),
     dmInput: document.getElementById('dm-custom-name-input'),
@@ -106,13 +108,9 @@ function monitorCurfew() {
     } else {
         lockDownApp();
         calculateCountdown(now);
-
-        // 🛠️ DISMISS LOADING SHIELD DURING THE DAY
         if (UI.loaderOverlay && UI.loaderOverlay.style.display !== "none") {
             UI.loaderOverlay.style.opacity = "0";
-            setTimeout(() => { 
-                UI.loaderOverlay.style.display = "none"; 
-            }, 400);
+            setTimeout(() => { UI.loaderOverlay.style.display = "none"; }, 400);
         }
     }
 }
@@ -141,7 +139,6 @@ function lockDownApp() {
     }
 }
 
-// --- 2. IDENTITY SYSTEM & FULL SCREEN INITIALIZATION SPLASH ---
 function getOrCreateFingerprintToken() {
     let fingerprint = localStorage.getItem('curfew_device_fingerprint');
     if (!fingerprint) {
@@ -154,13 +151,9 @@ function getOrCreateFingerprintToken() {
 async function fetchIdentitySecurely() {
     if (isFetchingIdentity || currentUser.alias) return;
     isFetchingIdentity = true;
-    
-    // Unveil premium dynamic full screen loader overlay panel
     UI.loaderOverlay.style.display = "flex";
     UI.loaderOverlay.style.opacity = "1";
-
     const clientSignatureHash = getOrCreateFingerprintToken();
-
     try {
         const response = await fetch(`${SERVER_URL}/api/get-identity`, {
             method: 'POST',
@@ -168,18 +161,14 @@ async function fetchIdentitySecurely() {
             body: JSON.stringify({ fingerprintId: clientSignatureHash })
         });
         const data = await response.json();
-
         currentUser.alias = data.name;
         DOM.userAlias.innerText = currentUser.alias;
-
-        // If user newly joins today, pull open the aesthetic character splash profile modal sheet
         if (data.isNew) {
             UI.splashHero.innerText = data.name;
             UI.splashPowers.innerText = data.powers || "Unknown Variant";
             UI.splashDesc.innerText = data.description || "No cosmic matrix database logs.";
             UI.splashModal.classList.remove('hidden');
         }
-
         renderPersistentRoomTabs();
     } catch (err) {
         currentUser.alias = "Tony Stark";
@@ -187,7 +176,6 @@ async function fetchIdentitySecurely() {
         renderPersistentRoomTabs();
     } finally {
         isFetchingIdentity = false;
-        // Smoothly fade loader screen matrix away
         setTimeout(() => {
             UI.loaderOverlay.style.opacity = "0";
             setTimeout(() => { UI.loaderOverlay.style.display = "none"; }, 400);
@@ -195,11 +183,12 @@ async function fetchIdentitySecurely() {
     }
 }
 
-// --- 3. DYNAMIC DASHBOARD MIGRATION SWITCH CONTROLS ---
+// --- 3. FULL-WIDTH SWITCH SLIDER TAB TRANSLATIONS ---
 UI.tabGroups.addEventListener('click', () => {
     currentActiveViewTab = "groups";
-    UI.tabGroups.classList.add('active-tab');
-    UI.tabDMs.classList.remove('active-tab');
+    UI.tabIndicator.style.transform = "translateX(0%)";
+    UI.tabGroups.classList.add('active-text');
+    UI.tabDMs.classList.remove('active-text');
     UI.openSidebarBtn.style.display = "flex";
     DOM.openModalBtn.classList.remove('hidden');
     renderPersistentRoomTabs();
@@ -207,8 +196,9 @@ UI.tabGroups.addEventListener('click', () => {
 
 UI.tabDMs.addEventListener('click', () => {
     currentActiveViewTab = "dms";
-    UI.tabDMs.classList.add('active-tab');
-    UI.tabGroups.classList.remove('active-tab');
+    UI.tabIndicator.style.transform = "translateX(100%)";
+    UI.tabDMs.classList.add('active-text');
+    UI.tabGroups.classList.remove('active-text');
     DOM.openModalBtn.classList.add('hidden');
     renderPersistentRoomTabs();
 });
@@ -244,12 +234,9 @@ async function renderPersistentRoomTabs() {
             </div>
             <span class="status-dot active"></span>
         `;
-
         try {
-            // Read 200 clean layout validations directly without triggering red DevTools errors
             const response = await fetch(`${SERVER_URL}/api/verify-room/${code}?sig=${clientSig}`);
             const data = await response.json();
-            
             if (data.isBanned) {
                 card.classList.add('banned-curfew');
             } else {
@@ -258,33 +245,49 @@ async function renderPersistentRoomTabs() {
         } catch (err) {
             card.addEventListener('click', () => joinActiveChannel(code, savedRooms[code]));
         }
-
         DOM.roomsContainer.appendChild(card);
     }
 }
 
-// --- 4. NAVIGATION SLIDING MENUS DRAWER (DASHBOARD ONLY) ---
-UI.openSidebarBtn.addEventListener('click', () => {
+// --- 4. SIDEBAR DRAWER INTERACTION PATHWAYS ---
+UI.openSidebarBtn.addEventListener('click', (e) => {
+    e.stopPropagation(); // Stop window bubble
     UI.sidebar.classList.remove('drawer-closed');
     UI.sidebar.classList.add('drawer-open');
-}); // 🛠️ FIX: Ensure this closing bracket and parenthesis are present!
+});
 
 UI.closeSidebarBtn.addEventListener('click', () => {
     UI.sidebar.classList.remove('drawer-open');
     UI.sidebar.classList.add('drawer-closed');
 });
 
+// 🛠️ CLOSE SIDEBAR AUTOMATICALLY UPON CLICKING OUTSIDE BOUNDARIES
+window.addEventListener('click', (e) => {
+    if (UI.sidebar.classList.contains('drawer-open')) {
+        if (!UI.sidebar.contains(e.target) && e.target !== UI.openSidebarBtn) {
+            UI.sidebar.classList.remove('drawer-open');
+            UI.sidebar.classList.add('drawer-closed');
+        }
+    }
+});
+
+// EMBEDDED CUSTOM ABOUT SCREEN OVERLAY TRIGGER
+UI.sidebarTriggerAbout.addEventListener('click', () => {
+    UI.sidebar.classList.remove('drawer-open');
+    UI.sidebar.classList.add('drawer-closed');
+    UI.aboutModal.classList.remove('hidden');
+});
+UI.aboutCloseBtn.addEventListener('click', () => UI.aboutModal.classList.add('hidden'));
+
 UI.sidebarTriggerFeedback.addEventListener('click', () => {
+    UI.sidebar.classList.remove('drawer-open');
     UI.sidebar.classList.add('drawer-closed');
     UI.feedbackModal.classList.remove('hidden');
 });
-
 UI.feedbackCancel.addEventListener('click', () => UI.feedbackModal.classList.add('hidden'));
-
 UI.feedbackSubmit.addEventListener('click', async () => {
     const feedbackBodyText = UI.feedbackText.value.trim();
     if (!feedbackBodyText) return;
-    
     try {
         await fetch(`${SERVER_URL}/api/feedback`, {
             method: 'POST',
@@ -299,21 +302,15 @@ UI.feedbackSubmit.addEventListener('click', async () => {
     }
 });
 
-UI.sidebarTriggerAbout.addEventListener('click', () => {
-    alert("CurfewMe v2.0 - Premium Experiential Social Web Architecture Stack Engine.");
-});
-
-// --- 5. TIMED LONG PRESS META CAPABILITIES MATRIX ---
+// --- 5. TIMED LONG PRESS CAPABILITIES CONTROLLER ---
 function registerLongPressUserMeta(metaNode, messageSenderSig, messageSenderName) {
     let pressTimer = null;
-
     const fireOptionDialogue = () => {
         if (messageSenderSig === getOrCreateFingerprintToken()) return;
         activeLongPressContextUser = { sig: messageSenderSig, name: messageSenderName };
         UI.contextTitle.innerText = `Target Node: ${messageSenderName}`;
         UI.contextModal.classList.remove('hidden');
     };
-
     metaNode.addEventListener('mousedown', () => { pressTimer = setTimeout(fireOptionDialogue, 500); });
     metaNode.addEventListener('mouseup', () => { clearTimeout(pressTimer); });
     metaNode.addEventListener('mouseleave', () => { clearTimeout(pressTimer); });
@@ -321,44 +318,26 @@ function registerLongPressUserMeta(metaNode, messageSenderSig, messageSenderName
     metaNode.addEventListener('touchend', () => { clearTimeout(pressTimer); });
 }
 
-UI.contextCancel.addEventListener('click', () => {
-    UI.contextModal.classList.add('hidden');
-    activeLongPressContextUser = null;
-});
-
-UI.contextDM.addEventListener('click', () => {
-    UI.contextModal.classList.add('hidden');
-    UI.dmInput.value = "";
-    UI.dmModal.classList.remove('hidden');
-});
-
+UI.contextCancel.addEventListener('click', () => { UI.contextModal.classList.add('hidden'); activeLongPressContextUser = null; });
+UI.contextDM.addEventListener('click', () => { UI.contextModal.classList.add('hidden'); UI.dmInput.value = ""; UI.dmModal.classList.remove('hidden'); });
 UI.dmCancel.addEventListener('click', () => UI.dmModal.classList.add('hidden'));
-
 UI.dmConfirm.addEventListener('click', async () => {
     const customDMName = UI.dmInput.value.trim();
     if (!customDMName) return;
-
     UI.dmModal.classList.add('hidden');
     const creatorSig = getOrCreateFingerprintToken();
-
     try {
         const response = await fetch(`${SERVER_URL}/api/create-dm`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                targetSig: activeLongPressContextUser.sig,
-                roomName: customDMName,
-                creatorSig: creatorSig
-            })
+            body: JSON.stringify({ targetSig: activeLongPressContextUser.sig, roomName: customDMName, creatorSig: creatorSig })
         });
         const data = await response.json();
-        
         saveChannelToPersistence(data.roomCode, data.roomName, true);
-        
         currentActiveViewTab = "dms";
-        UI.tabDMs.classList.add('active-tab');
-        UI.tabGroups.classList.remove('active-tab');
-        
+        UI.tabIndicator.style.transform = "translateX(100%)";
+        UI.tabDMs.classList.add('active-text');
+        UI.tabGroups.classList.remove('active-text');
         joinActiveChannel(data.roomCode, data.roomName);
     } catch (err) {
         console.error(err);
@@ -367,25 +346,18 @@ UI.dmConfirm.addEventListener('click', async () => {
 
 UI.contextReport.addEventListener('click', async () => {
     if (!activeLongPressContextUser || !currentRoomCode) return;
-    
     UI.contextModal.classList.add('hidden');
     const confirmReport = confirm(`Log a democratic moderation report against ${activeLongPressContextUser.name}?`);
     if (!confirmReport) return;
-
     try {
         const response = await fetch(`${SERVER_URL}/api/report-user`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                roomCode: currentRoomCode,
-                targetSig: activeLongPressContextUser.sig,
-                reporterSig: getOrCreateFingerprintToken()
-            })
+            body: JSON.stringify({ roomCode: currentRoomCode, targetSig: activeLongPressContextUser.sig, reporterSig: getOrCreateFingerprintToken() })
         });
         const data = await response.json();
-
         if (data.evicted) {
-            alert(`User ${activeLongPressContextUser.name} has crossed the 30% limit and has been restricted from the platform lounge space.`);
+            alert(`User ${activeLongPressContextUser.name} has crossed the 30% limit and has been restricted from the channel lounge space.`);
         } else {
             alert(data.message || "Democratic report filed successfully.");
         }
@@ -396,14 +368,12 @@ UI.contextReport.addEventListener('click', async () => {
     }
 });
 
-// --- 6. SOCKET COMMUNICATIONS DECK ---
+// --- 6. SOCKET CLUSTER HANDLING SYSTEMS ---
 function initializeRealTimeSocket() {
     if (typeof io === 'undefined') return;
     socket = io(SERVER_URL);
-
     socket.on('force-curfew-lock', () => lockDownApp());
     socket.on('receive-message', (msg) => displayMessage(msg));
-
     socket.on('message-burned', ({ messageId }) => {
         const targetedMsgCard = document.getElementById(messageId);
         if (targetedMsgCard) {
@@ -411,7 +381,6 @@ function initializeRealTimeSocket() {
             setTimeout(() => targetedMsgCard.remove(), 800);
         }
     });
-
     socket.on('user-banned-broadcast', ({ roomCode, fingerprintId }) => {
         const currentLocalSig = localStorage.getItem('curfew_device_fingerprint');
         if (currentRoomCode === roomCode && currentLocalSig === fingerprintId) {
@@ -419,7 +388,6 @@ function initializeRealTimeSocket() {
             DOM.feedView.classList.remove('hidden');
             DOM.mainAppHeader.classList.remove('hidden');
             currentRoomCode = null;
-
             resetModalLayout();
             DOM.customModal.classList.remove('hidden');
             DOM.modalTitle.innerText = "Evicted";
@@ -430,10 +398,9 @@ function initializeRealTimeSocket() {
     });
 }
 
-// --- 7. INTEGRATED VIEWPORT ENGINE & INTERACTION FLOWS ---
+// --- 7. INTEGRATED VIEWPORT CORE INTERACTION ENGINE ---
 async function joinActiveChannel(roomCode, roomName) {
     currentRoomCode = roomCode;
-
     UI.openSidebarBtn.style.display = "none";
     DOM.mainAppHeader.classList.add('hidden');
     DOM.feedView.classList.add('hidden');
@@ -441,7 +408,6 @@ async function joinActiveChannel(roomCode, roomName) {
     DOM.currentRoomTitle.innerText = roomName || `Room: ${roomCode}`;
     DOM.messagesContainer.innerHTML = '';
 
-    // If channel lane is an isolated DM block, strip the group configuration leave layouts away completely
     if (roomCode.startsWith('dm_')) {
         document.getElementById('leave-group-btn').style.display = "none";
     } else {
@@ -453,19 +419,12 @@ async function joinActiveChannel(roomCode, roomName) {
         if (response.ok) {
             const dailyLogsHistory = await response.json();
             dailyLogsHistory.forEach(msg => {
-                displayMessage({
-                    id: msg._id,
-                    sender: msg.sender,
-                    senderSig: msg.senderSig, 
-                    text: msg.text,
-                    type: msg.type
-                });
+                displayMessage({ id: msg._id, sender: msg.sender, senderSig: msg.senderSig, text: msg.text, type: msg.type });
             });
         }
     } catch (err) {
         console.warn(err.message);
     }
-
     if (socket) {
         socket.emit('join-room', { roomCode: currentRoomCode, userAlias: currentUser.alias });
     }
@@ -516,12 +475,11 @@ function displayMessage(msg) {
         msgWrapper.addEventListener('touchstart', startChargingBurn, { passive: false });
         msgWrapper.addEventListener('touchend', clearChargingBurn);
     }
-
     DOM.messagesContainer.appendChild(msgWrapper);
     DOM.messagesContainer.scrollTop = DOM.messagesContainer.scrollHeight;
 }
 
-document.getElementById('leave-chat-btn').addEventListener('click', () => {
+DOM.leaveChatBtn.addEventListener('click', () => {
     DOM.chatView.classList.add('hidden');
     DOM.feedView.classList.remove('hidden');
     DOM.mainAppHeader.classList.remove('hidden');
@@ -532,15 +490,12 @@ document.getElementById('leave-chat-btn').addEventListener('click', () => {
     renderPersistentRoomTabs();
 });
 
-// --- 8. GAMIFIED DYNAMIC SYSTEM MELTDOWN RESET ("THE BURN WARNING LOOP") ---
+// --- 8. SYSTEM BURN RESET WARNING TICKER ---
 function checkSystemMeltdownWarning() {
     if (IS_DEV_MODE) return;
     const now = new Date();
-    
-    // Check if we are inside the terminal window: 3:55 AM to 3:59 AM IST
     if (now.getHours() === 3 && now.getMinutes() >= 55) {
         const secondsLeft = 60 - now.getSeconds() + ((59 - now.getMinutes()) * 60);
-        
         let countdownOverlay = document.getElementById('meltdown-alert-banner');
         if (!countdownOverlay) {
             countdownOverlay = document.createElement('div');
@@ -548,14 +503,14 @@ function checkSystemMeltdownWarning() {
             countdownOverlay.style = "position: fixed; top: 90px; left: 0; width: 100%; background: #FF3B30; color: #fff; text-align: center; padding: 10px; font-weight: 800; font-size: 0.9rem; z-index: 9999; letter-spacing: 0.05em; text-transform: uppercase; box-shadow: 0 4px 12px rgba(255,59,48,0.3);";
             document.body.appendChild(countdownOverlay);
         }
-        countdownOverlay.innerText = `🚨 WARNING: Data purge in ${secondsLeft}s. Exchange details before connections burn!`;
+        countdownOverlay.innerText = `🚨 WARNING: Data purge in ${secondsLeft}s. Connections burn at dawn!`;
     } else {
         const activeBanner = document.getElementById('meltdown-alert-banner');
         if (activeBanner) activeBanner.remove();
     }
 }
 
-// --- 9. MODAL INTERFACES LAYOUT CONTROL BASE ---
+// --- 9. AUXILIARY MODAL FLOW MANAGERS ---
 function resetModalLayout() {
     currentModalState = 'choice';
     DOM.modalTitle.innerText = "Select Action";
@@ -569,122 +524,79 @@ function resetModalLayout() {
     DOM.modalInput.removeAttribute('maxlength');
 }
 
-DOM.openModalBtn.addEventListener('click', () => {
-    resetModalLayout();
-    DOM.customModal.classList.remove('hidden');
-});
+DOM.openModalBtn.addEventListener('click', () => { resetModalLayout(); DOM.customModal.classList.remove('hidden'); });
 DOM.modalCancel.addEventListener('click', () => DOM.customModal.classList.add('hidden'));
 DOM.modalInput.addEventListener('input', () => DOM.modalErrorText.classList.add('hidden'));
 UI.splashClose.addEventListener('click', () => UI.splashModal.classList.add('hidden'));
 
 DOM.choiceCreateBtn.addEventListener('click', () => {
-    currentModalState = 'create-input';
-    DOM.modalTitle.innerText = "Create Group Channel";
-    DOM.choiceView.classList.add('hidden');
-    DOM.modalInput.classList.remove('hidden');
-    DOM.modalConfirm.classList.remove('hidden');
-    DOM.modalInput.placeholder = "Room Name";
-    DOM.modalInput.maxLength = 20;
-    DOM.modalInput.focus();
+    currentModalState = 'create-input'; DOM.modalTitle.innerText = "Create Group Channel";
+    DOM.choiceView.classList.add('hidden'); DOM.modalInput.classList.remove('hidden');
+    DOM.modalConfirm.classList.remove('hidden'); DOM.modalInput.placeholder = "Room Name";
+    DOM.modalInput.maxLength = 20; DOM.modalInput.focus();
 });
 
 DOM.choiceJoinBtn.addEventListener('click', () => {
-    currentModalState = 'join-input';
-    DOM.modalTitle.innerText = "Join Group Channel";
-    DOM.choiceView.classList.add('hidden');
-    DOM.modalInput.classList.remove('hidden');
-    DOM.modalConfirm.classList.remove('hidden');
-    DOM.modalInput.placeholder = "Enter 6-Digit Code";
-    DOM.modalInput.maxLength = 6;
-    DOM.modalInput.focus();
+    currentModalState = 'join-input'; DOM.modalTitle.innerText = "Join Group Channel";
+    DOM.choiceView.classList.add('hidden'); DOM.modalInput.classList.remove('hidden');
+    DOM.modalConfirm.classList.remove('hidden'); DOM.modalInput.placeholder = "Enter 6-Digit Code";
+    DOM.modalInput.maxLength = 6; DOM.modalInput.focus();
 });
 
 DOM.modalConfirm.addEventListener('click', async () => {
     const rawVal = DOM.modalInput.value.trim();
-
     if (currentModalState === 'create-input') {
         if (!rawVal) return;
         try {
-            const response = await fetch(`${SERVER_URL}/api/create-room`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ roomName: rawVal })
-            });
+            const response = await fetch(`${SERVER_URL}/api/create-room`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ roomName: rawVal }) });
             const data = await response.json();
             if (!response.ok) throw new Error(data.error);
-
             currentModalState = 'success';
             DOM.modalTitle.innerText = `Group Created: ${data.roomName}`;
-            DOM.modalInput.classList.add('hidden');
-            DOM.successView.classList.remove('hidden');
-            DOM.generatedCodeDisplay.innerText = data.roomCode;
-            DOM.modalConfirm.innerText = "Enter Room";
-
+            DOM.modalInput.classList.add('hidden'); DOM.successView.classList.remove('hidden');
+            DOM.generatedCodeDisplay.innerText = data.roomCode; DOM.modalConfirm.innerText = "Enter Room";
             saveChannelToPersistence(data.roomCode, data.roomName, false);
-
             DOM.copyCodeBtn.onclick = () => {
-                navigator.clipboard.writeText(data.roomCode);
-                DOM.copyCodeBtn.innerText = "Copied!";
+                navigator.clipboard.writeText(data.roomCode); DOM.copyCodeBtn.innerText = "Copied!";
                 setTimeout(() => { DOM.copyCodeBtn.innerText = "Copy Code"; }, 2000);
             };
         } catch (err) {
-            DOM.modalErrorText.innerText = err.message || "Failed to create channel.";
-            DOM.modalErrorText.classList.remove('hidden');
+            DOM.modalErrorText.innerText = err.message || "Failed to create channel."; DOM.modalErrorText.classList.remove('hidden');
         }
     }
     else if (currentModalState === 'join-input') {
-        if (!/^\d{6}$/.test(rawVal)) {
-            DOM.modalErrorText.innerText = "Invalid Code !!";
-            DOM.modalErrorText.classList.remove('hidden');
-            return;
-        }
-
+        if (!/^\d{6}$/.test(rawVal)) { DOM.modalErrorText.innerText = "Invalid Code !!"; DOM.modalErrorText.classList.remove('hidden'); return; }
         try {
             const clientSig = getOrCreateFingerprintToken();
             const response = await fetch(`${SERVER_URL}/api/verify-room/${rawVal}?sig=${clientSig}`);
             const data = await response.json();
-
-            if (!data.allowed) {
-                DOM.modalErrorText.innerText = data.error || "Invalid Code !!";
-                DOM.modalErrorText.classList.remove('hidden');
-                return;
-            }
-
+            if (!data.allowed) { DOM.modalErrorText.innerText = data.error || "Invalid Code !!"; DOM.modalErrorText.classList.remove('hidden'); return; }
             saveChannelToPersistence(data.roomCode, data.roomName, false);
-            DOM.customModal.classList.add('hidden');
-            joinActiveChannel(data.roomCode, data.roomName);
+            DOM.customModal.classList.add('hidden'); joinActiveChannel(data.roomCode, data.roomName);
         } catch (err) {
-            DOM.modalErrorText.innerText = "Invalid Code !!";
-            DOM.modalErrorText.classList.remove('hidden');
+            DOM.modalErrorText.innerText = "Invalid Code !!"; DOM.modalErrorText.classList.remove('hidden');
         }
     }
     else if (currentModalState === 'success') {
         const activeCode = DOM.generatedCodeDisplay.innerText;
         let savedRooms = JSON.parse(localStorage.getItem('curfew_rooms_map')) || {};
-        DOM.customModal.classList.add('hidden');
-        joinActiveChannel(activeCode, savedRooms[activeCode]);
+        DOM.customModal.classList.add('hidden'); joinActiveChannel(activeCode, savedRooms[activeCode]);
     }
 });
 
 const leaveModal = document.getElementById('leave-confirm-modal');
-document.getElementById('leave-group-btn').addEventListener('click', () => {
-    if (!currentRoomCode) return;
-    leaveModal.classList.remove('hidden');
-});
+document.getElementById('leave-group-btn').addEventListener('click', () => { if (!currentRoomCode) return; leaveModal.classList.remove('hidden'); });
 document.getElementById('leave-modal-cancel').addEventListener('click', () => leaveModal.classList.add('hidden'));
 document.getElementById('leave-modal-confirm').addEventListener('click', () => {
     leaveModal.classList.add('hidden');
     let savedRooms = JSON.parse(localStorage.getItem('curfew_rooms_map')) || {};
     delete savedRooms[currentRoomCode];
     localStorage.setItem('curfew_rooms_map', JSON.stringify(savedRooms));
-    DOM.chatView.classList.add('hidden');
-    DOM.feedView.classList.remove('hidden');
-    DOM.mainAppHeader.classList.remove('hidden');
-    currentRoomCode = null;
-    renderPersistentRoomTabs();
+    DOM.chatView.classList.add('hidden'); DOM.feedView.classList.remove('hidden'); DOM.mainAppHeader.classList.remove('hidden');
+    currentRoomCode = null; renderPersistentRoomTabs();
 });
 
-// --- 10. INPUT ASSET TRANSMISSIONS DECK ---
+// --- 10. INPUT TRANSMISSIONS AND CANVAS SECURITY ---
 function linkifyText(text) {
     const urlPattern = /(\b(https?|ftp|file):\/\/[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|])/ig;
     return text.replace(urlPattern, '<a href="$1" target="_blank" class="msg-link">$1</a>');
@@ -694,13 +606,7 @@ function dispatchOutgoingMessage() {
     const text = DOM.chatInput.value.trim();
     if (!text || !currentRoomCode) return;
     const clientSig = getOrCreateFingerprintToken();
-    socket.emit('send-message', {
-        roomCode: currentRoomCode,
-        sender: currentUser.alias,
-        senderSig: clientSig,
-        text: text,
-        type: 'text'
-    });
+    socket.emit('send-message', { roomCode: currentRoomCode, sender: currentUser.alias, senderSig: clientSig, text: text, type: 'text' });
     DOM.chatInput.value = '';
 }
 
@@ -712,72 +618,44 @@ DOM.fileInput.addEventListener('change', (e) => {
         const reader = new FileReader();
         reader.onload = function (event) {
             const clientSig = getOrCreateFingerprintToken();
-            socket.emit('send-message', {
-                roomCode: currentRoomCode,
-                sender: currentUser.alias,
-                senderSig: clientSig,
-                text: event.target.result,
-                type: 'image'
-            });
+            socket.emit('send-message', { roomCode: currentRoomCode, sender: currentUser.alias, senderSig: clientSig, text: event.target.result, type: 'image' });
         };
         reader.readAsDataURL(file);
     }
     DOM.fileInput.value = '';
 });
 
-// --- 11. SECURITY & CANVAS ANOMALY BLOCKS ---
 window.addEventListener('blur', () => {
     if (IS_DEV_MODE) return;
     const overlay = document.querySelector('.screenshot-overlay');
-    if (overlay && !DOM.chatView.classList.contains('hidden')) {
-        overlay.style.display = 'flex';
-        DOM.messagesContainer.classList.add('frozen-lockdown');
-    }
+    if (overlay && !DOM.chatView.classList.contains('hidden')) { overlay.style.display = 'flex'; DOM.messagesContainer.classList.add('frozen-lockdown'); }
 });
 window.addEventListener('focus', () => {
     if (IS_DEV_MODE) return;
     const overlay = document.querySelector('.screenshot-overlay');
-    if (overlay) {
-        overlay.style.display = 'none';
-        DOM.messagesContainer.classList.remove('frozen-lockdown');
-    }
+    if (overlay) { overlay.style.display = 'none'; DOM.messagesContainer.classList.remove('frozen-lockdown'); }
 });
 window.addEventListener('keydown', (e) => {
     if (IS_DEV_MODE) return;
     if ((e.metaKey && e.shiftKey) || (e.ctrlKey && e.shiftKey) || e.key === 'PrintScreen') {
-        const stream = DOM.messagesContainer;
-        stream.style.filter = 'blur(40px)';
+        const stream = DOM.messagesContainer; stream.style.filter = 'blur(40px)';
         setTimeout(() => { stream.style.filter = 'none'; }, 2000);
     }
 });
 
-// --- 12. VISUAL STYLE DECK INITIALIZATION ---
 function initializeApplicationTheme() {
     const savedTheme = localStorage.getItem('curfew_visual_theme');
-    if (savedTheme === 'light') {
-        document.body.classList.add('light-theme');
-        DOM.themeToggleCheckbox.checked = false;
-    } else {
-        document.body.classList.remove('light-theme');
-        DOM.themeToggleCheckbox.checked = true;
-    }
+    if (savedTheme === 'light') { document.body.classList.add('light-theme'); DOM.themeToggleCheckbox.checked = false; }
+    else { document.body.classList.remove('light-theme'); DOM.themeToggleCheckbox.checked = true; }
 }
 DOM.themeToggleCheckbox.addEventListener('change', () => {
-    if (DOM.themeToggleCheckbox.checked) {
-        document.body.classList.remove('light-theme');
-        localStorage.setItem('curfew_visual_theme', 'dark');
-    } else {
-        document.body.classList.add('light-theme');
-        localStorage.setItem('curfew_visual_theme', 'light');
-    }
+    if (DOM.themeToggleCheckbox.checked) { document.body.classList.remove('light-theme'); localStorage.setItem('curfew_visual_theme', 'dark'); }
+    else { document.body.classList.add('light-theme'); localStorage.setItem('curfew_visual_theme', 'light'); }
 });
 
 DOM.sendBtn.addEventListener('click', dispatchOutgoingMessage);
 DOM.chatInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') dispatchOutgoingMessage(); });
 
 initializeApplicationTheme();
-setInterval(() => {
-    monitorCurfew();
-    checkSystemMeltdownWarning();
-}, 1000);
+setInterval(() => { monitorCurfew(); checkSystemMeltdownWarning(); }, 1000);
 monitorCurfew();
