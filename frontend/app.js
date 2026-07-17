@@ -73,6 +73,10 @@ const DOM = {
     fileInput: document.getElementById('file-input'),
     modalErrorText: document.getElementById('modal-error-text'),
     themeToggleCheckbox: document.getElementById('theme-toggle-checkbox'),
+    // Restored Democratic Rule Modal Links Matrices
+    rulesReportModal: document.getElementById('report-moderation-rules-modal'),
+    rulesReportCancel: document.getElementById('rules-report-cancel-btn'),
+    rulesReportConfirm: document.getElementById('rules-report-confirm-btn'),
     leaveConfirmModal: document.getElementById('leave-confirm-modal'),
     leaveModalCancel: document.getElementById('leave-modal-cancel'),
     leaveModalConfirm: document.getElementById('leave-modal-confirm')
@@ -411,28 +415,64 @@ UI.dmConfirm.addEventListener('click', async () => {
     }
 });
 
-async function executeInlineReportSubmission() {
+// --- RESTORED AESTHETIC DEMOCRATIC INFRACTION CONTROLLER MATRIX ---
+function executeInlineReportSubmission() {
     if (!activeLongPressContextUser || !currentRoomCode) return;
-    const confirmReport = confirm(`Log a democratic moderation report against ${activeLongPressContextUser.name}?`);
-    if (!confirmReport) return;
+    
+    // Clear any active context drop-down lists instantly
+    const openPanel = document.querySelector('.premium-whatsapp-dropdown-panel');
+    if (openPanel) openPanel.remove();
+
+    // Reveal the original explanation card
+    UI.rulesReportModal.classList.remove('hidden');
+}
+
+// Wire the confirmation and cancellation click channels directly to the card
+UI.rulesReportCancel.addEventListener('click', () => {
+    UI.rulesReportModal.classList.add('hidden');
+    activeLongPressContextUser = null;
+});
+
+UI.rulesReportConfirm.addEventListener('click', async () => {
+    if (!activeLongPressContextUser || !currentRoomCode) return;
+    
+    UI.rulesReportModal.classList.add('hidden');
+    const signatureToken = getOrCreateFingerprintToken();
+
     try {
         const response = await fetch(`${SERVER_URL}/api/report-user`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ roomCode: currentRoomCode, targetSig: activeLongPressContextUser.sig, reporterSig: getOrCreateFingerprintToken() })
+            body: JSON.stringify({
+                roomCode: currentRoomCode,
+                targetSig: activeLongPressContextUser.sig,
+                reporterSig: signatureToken
+            })
         });
         const data = await response.json();
+
         if (data.evicted) {
-            alert(`User ${activeLongPressContextUser.name} has crossed the threshold and has been banned.`);
+            alert(`User ${activeLongPressContextUser.name} has crossed the 30% democratic threshold limit and has been banned from the lounge.`);
         } else {
             alert(data.message || "Democratic report filed successfully.");
         }
     } catch (err) {
-        console.error(err);
+        console.error("Moderation router exception error:", err);
     } finally {
         activeLongPressContextUser = null;
     }
-}
+});
+
+// 🛠️ AUTOMATIC OUTSIDE BOUNDS CLICK OVERLAY DISMISSAL HOOK
+window.addEventListener('click', (e) => {
+    if (!UI.rulesReportModal.classList.contains('hidden')) {
+        const structuralBox = UI.rulesReportModal.querySelector('.modal-box');
+        if (structuralBox && !structuralBox.contains(e.target)) {
+            UI.rulesReportModal.classList.add('hidden');
+            activeLongPressContextUser = null;
+        }
+    }
+});
 
 // --- SOCKET SYSTEM DECK ---
 function initializeRealTimeSocket() {

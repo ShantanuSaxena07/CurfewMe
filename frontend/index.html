@@ -224,6 +224,28 @@
         </div>
     </div>
 
+    <!-- DEMOCRATIC 30% RULES MODERATION CONFIRMATION MATRICES SHEET -->
+    <div id="report-moderation-rules-modal" class="modal-overlay hidden">
+        <div class="modal-box text-left">
+            <h3>Confirm Moderation Report</h3>
+            <p class="report-warning-body" style="margin: 12px 0; font-size: 0.95rem; line-height: 1.5;">
+                You are logging a formal protocol infraction report against this participant node.
+            </p>
+            <div style="background: rgba(255, 59, 48, 0.08); border-radius: 12px; padding: 16px; margin: 16px 0; border: 1px solid rgba(255, 59, 48, 0.15);">
+                <strong style="color: #FF3B30; font-size: 0.82rem; text-transform: uppercase; letter-spacing: 0.05em; display: block; margin-bottom: 6px;">
+                    🛡️ The 30% Democratic Curfew Metric Rule:
+                </strong>
+                <p style="font-size: 0.88rem; line-height: 1.45; color: var(--text-main); font-weight: 500;">
+                    If <strong>30% or more</strong> of the active participants in this group channel file a report against this user, they will be instantly evicted and locked out of this lounge room for the rest of today's operational window. Access permissions reset safely when the next curfew evening opens tomorrow.
+                </p>
+            </div>
+            <div class="modal-actions">
+                <button class="btn-secondary" id="rules-report-cancel-btn">Cancel</button>
+                <button class="btn-primary" id="rules-report-confirm-btn" style="background: #FF3B30; color: #FFF;">Confirm Report</button>
+            </div>
+        </div>
+    </div>
+
     <div id="screenshot-overlay" class="screenshot-overlay"></div>
     <script src="app.js"></script>
 </body>

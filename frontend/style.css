@@ -422,7 +422,7 @@ body:not(.light-theme) .pill-slider:before {
 .msg-bubble {
     padding: 12px 18px;
     border-radius: 18px;
-    font-size: 0.98rem;
+    font-size: 0.99rem;
     line-height: 1.45;
     word-break: break-word;
     font-weight: 500;
@@ -1173,4 +1173,42 @@ body.light-theme .global-loader-glassmorphic {
 }
 .dropdown-action-row-item.report-red {
     color: #FF3B30;
+}
+
+/* --- PREMIUM EMBER BURN PURGE KEYFRAMES --- */
+@keyframes cinematicFirePurge {
+    0% {
+        transform: scale(1);
+        filter: brightness(1) saturate(1) blur(0px);
+        opacity: 1;
+    }
+    20% {
+        transform: scale(1.03);
+        filter: brightness(1.6) drop-shadow(0 0 12px #FF5500) blur(0.5px);
+        background: linear-gradient(135deg, #FF4500, #FF0000);
+        box-shadow: 0 0 20px #FF4500;
+    }
+    40% {
+        transform: scale(0.97) translateX(3px);
+        filter: brightness(2) drop-shadow(0 0 25px #FF1A00) blur(2px);
+        background: #212632;
+    }
+    100% {
+        transform: scale(0.85) translateY(-60px) rotate(1.5deg);
+        filter: brightness(3) drop-shadow(0 0 40px #FF0000) blur(16px);
+        opacity: 0;
+    }
+}
+
+.msg-wrapper.burning {
+    animation: cinematicFirePurge 850ms cubic-bezier(0.4, 0, 0.2, 1) forwards !important;
+    pointer-events: none !important;
+}
+
+/* Subtle feedback loop when charging a deletion hold trigger */
+.msg-wrapper.charging {
+    transform: scale(0.98);
+    opacity: 0.85;
+    box-shadow: 0 0 12px rgba(255, 69, 0, 0.4) !important;
+    transition: all 200ms ease;
 }
