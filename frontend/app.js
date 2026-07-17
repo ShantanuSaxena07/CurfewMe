@@ -299,49 +299,68 @@ UI.feedbackSubmit.addEventListener('click', async () => {
 });
 
 // --- 2. INLINE SMOOTH ACTIONS DRAWER REGISTRATION LOOP ---
+// --- RE-ENGINEERED WHATSAPP LOOK FLOATING CONTEXT MENU DESPATCH MATRIX ---
 function registerLongPressUserMeta(metaNode, messageSenderSig, messageSenderName) {
     let pressTimer = null;
+    const bubbleWrapperNode = metaNode.parentNode;
+    const desktopHoverArrowTrigger = bubbleWrapperNode.querySelector('.msg-hover-context-trigger');
 
-    const triggerInlineContextBar = () => {
+    const spawnFloatingPanel = (event) => {
         if (messageSenderSig === getOrCreateFingerprintToken()) return;
+        event.preventDefault();
+        event.stopPropagation();
 
-        // Remove old inline control bars if any are currently drawn
-        const oldBar = document.querySelector('.inline-context-control-bar');
-        if (oldBar) oldBar.remove();
+        // Clear any old active dropdown instances
+        const activeExistingPanel = document.querySelector('.premium-whatsapp-dropdown-panel');
+        if (activeExistingPanel) activeExistingPanel.remove();
 
-        activeLongPressContextUser = { sig: messageSenderSig, name: messageSenderName };
-
-        // Generate the inline container element right beneath the user name tag
-        const actionContainer = document.createElement('div');
-        actionContainer.className = 'inline-context-control-bar';
-        actionContainer.innerHTML = `
-            <button class="inline-action-bubble-btn dm-accent">DM</button>
-            <button class="inline-action-bubble-btn report-accent">Report</button>
+        const floatingPanel = document.createElement('div');
+        floatingPanel.className = 'premium-whatsapp-dropdown-panel';
+        floatingPanel.innerHTML = `
+            <button class="dropdown-action-row-item dm-act">💬 Direct Message</button>
+            <button class="dropdown-action-row-item report-red rep-act">⚠️ Report User</button>
         `;
 
-        // Wire immediate routing mechanics onto buttons
-        actionContainer.querySelector('.dm-accent').addEventListener('click', (e) => {
+        // Wire click behaviors
+        floatingPanel.querySelector('.dm-act').addEventListener('click', (e) => {
             e.stopPropagation();
-            actionContainer.remove();
+            floatingPanel.remove();
+            activeLongPressContextUser = { sig: messageSenderSig, name: messageSenderName };
             executeInlineDMLaneVerification();
         });
 
-        actionContainer.querySelector('.report-accent').addEventListener('click', (e) => {
+        floatingPanel.querySelector('.rep-act').addEventListener('click', (e) => {
             e.stopPropagation();
-            actionContainer.remove();
+            floatingPanel.remove();
+            activeLongPressContextUser = { sig: messageSenderSig, name: messageSenderName };
             executeInlineReportSubmission();
         });
 
-        // Append inline control deck directly inside message element scope without generic modal boxes
-        metaNode.parentNode.appendChild(actionContainer);
+        // Inject the floating element directly into the message element's scope
+        bubbleWrapperNode.appendChild(floatingPanel);
+
+        // Position alignment adjustments natively beside text blocks
+        floatingPanel.style.bottom = "24px";
+        floatingPanel.style.left = "20px";
     };
 
-    metaNode.addEventListener('mousedown', () => { pressTimer = setTimeout(triggerInlineContextBar, 500); });
+    // Mobile/Tablet touch events track loops
+    metaNode.addEventListener('mousedown', (e) => { pressTimer = setTimeout(() => spawnFloatingPanel(e), 500); });
     metaNode.addEventListener('mouseup', () => { clearTimeout(pressTimer); });
-    metaNode.addEventListener('mouseleave', () => { clearTimeout(pressTimer); });
-    metaNode.addEventListener('touchstart', () => { pressTimer = setTimeout(triggerInlineContextBar, 500); });
+    metaNode.addEventListener('touchstart', (e) => { pressTimer = setTimeout(() => spawnFloatingPanel(e), 500); });
     metaNode.addEventListener('touchend', () => { clearTimeout(pressTimer); });
+
+    // Desktop hover arrow click attachment loop link hook
+    if (desktopHoverArrowTrigger) {
+        desktopHoverArrowTrigger.addEventListener('click', (e) => spawnFloatingPanel(e));
+    }
 }
+
+// 🛠️ FIX: AUTO-DISMISS THE FLOATING PANEL ON OUTSIDE BOX CLICKS ANYWHERE IN WINDOW
+window.addEventListener('click', () => {
+    const openActivePanel = document.querySelector('.premium-whatsapp-dropdown-panel');
+    if (openActivePanel) openActivePanel.remove();
+});
 
 // 2. INLINE ROUTE ACTIONS EXECUTIONERS
 async function executeInlineDMLaneVerification() {
@@ -498,13 +517,16 @@ function displayMessage(msg) {
         bubbleContent = linkifyText(msg.text);
     }
 
-    msgWrapper.innerHTML = `
+   msgWrapper.innerHTML = `
         <div class="msg-meta" data-sig="${msg.senderSig}" data-name="${msg.sender}">
             ${isMe ? 'You (' + msg.sender + ')' : msg.sender}
         </div>
-        <div class="msg-bubble">${bubbleContent}</div>
+        <div class="msg-bubble-container">
+            <div class="msg-bubble">${bubbleContent}</div>
+            <!-- Dynamic hover trigger icon element for desktops -->
+            ${!isMe ? '<div class="msg-hover-context-trigger">▼</div>' : ''}
+        </div>
     `;
-
     const metaNode = msgWrapper.querySelector('.msg-meta');
     registerLongPressUserMeta(metaNode, msg.senderSig, msg.sender);
 

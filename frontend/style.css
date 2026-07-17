@@ -1051,3 +1051,135 @@ body.light-theme .global-loader-glassmorphic {
     font-weight: 800;
     width: fit-content;
 }
+
+/* --- CHAT VIEWPORT VERTICAL SCROLL LOCK FIX --- */
+.chat-inner-workspace {
+    height: 100%;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden; /* Hard-locks the workspace boundary inside the viewport */
+}
+
+.chat-viewport-wrapper {
+    flex: 1;
+    width: 100%;
+    overflow-y: auto;
+    overflow-x: hidden;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+}
+
+.chat-messages-stream-integrated {
+    width: 100%;
+    padding: 24px 30px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    /* Mobile scroll recovery pass-through */
+    touch-action: pan-y !important;
+    -webkit-overflow-scrolling: touch;
+}
+
+/* Allow touch events to slide through the structural bubble box layer natively */
+.msg-wrapper, .msg-bubble {
+    touch-action: pan-y !important;
+}
+
+/* --- PROBLEM 3: CUSTOM CHAT INPUT SCROLLBAR THEME MATCH --- */
+.integrated-input-wrapper textarea::-webkit-scrollbar {
+    width: 5px;
+}
+.integrated-input-wrapper textarea::-webkit-scrollbar-track {
+    background: transparent;
+}
+.integrated-input-wrapper textarea::-webkit-scrollbar-thumb {
+    background: var(--text-muted);
+    border-radius: 10px;
+    opacity: 0.5;
+}
+
+/* --- PROBLEM 4: USER SELECT ELIMINATION TRAIT --- */
+.msg-bubble, .msg-meta, .msg-wrapper {
+    -webkit-user-select: none !important;  /* Safari/iOS */
+    -moz-user-select: none !important;     /* Firefox */
+    -ms-user-select: none !important;      /* IE/Edge */
+    user-select: none !important;          /* Standard Chrome/Android */
+    -webkit-touch-callout: none !important; /* Disables native iOS popup sheet */
+}
+
+/* --- PROBLEM 2: FLOATING WHATSAPP-STYLE CONTEXT WINDOW SYSTEM --- */
+.msg-bubble-container {
+    position: relative;
+    display: flex;
+    align-items: center;
+    width: 100%;
+}
+.incoming .msg-bubble-container { justify-content: flex-start; }
+.outgoing .msg-bubble-container { justify-content: flex-end; }
+
+/* Desktop Hover Arrow Menu Controller Trigger */
+.msg-hover-context-trigger {
+    width: 20px;
+    height: 20px;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    opacity: 0;
+    margin: 0 8px;
+    transition: opacity 150ms ease;
+    color: var(--text-muted);
+    font-size: 0.7rem;
+}
+.msg-wrapper:hover .msg-hover-context-trigger {
+    opacity: 1;
+}
+
+/* Floating Action Panel Shell Casing */
+.premium-whatsapp-dropdown-panel {
+    position: absolute;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 6px;
+    min-width: 120px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+    z-index: 1000;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    backdrop-filter: blur(20px);
+    animation: scalePopIn 150ms cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+@keyframes scalePopIn {
+    from { opacity: 0; transform: scale(0.92); }
+    to { opacity: 1; transform: scale(1); }
+}
+
+.dropdown-action-row-item {
+    background: transparent;
+    border: none;
+    width: 100%;
+    padding: 10px 14px;
+    text-align: left;
+    color: var(--text-main);
+    font-size: 0.88rem;
+    font-weight: 600;
+    cursor: pointer;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    transition: background 150ms ease;
+}
+.dropdown-action-row-item:hover {
+    background: rgba(140,148,165,0.12);
+}
+.dropdown-action-row-item.report-red {
+    color: #FF3B30;
+}
