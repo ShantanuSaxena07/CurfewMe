@@ -635,7 +635,17 @@ function displayMessage(msg) {
         msgWrapper.addEventListener('touchend', clearChargingBurn);
     }
     DOM.messagesContainer.appendChild(msgWrapper);
-    DOM.messagesContainer.scrollTop = DOM.messagesContainer.scrollHeight;
+
+    // --- SMART CONDITIONAL AUTO-SCROLL ALGORITHM ---
+    // Calculate if the user is currently looking at history threads upward
+    // 120px threshold margin allows comfortable alignment tolerance parameters
+    const currentScrollBottomOffset = DOM.messagesContainer.scrollHeight - DOM.messagesContainer.scrollTop - DOM.messagesContainer.clientHeight;
+    const isUserViewingHistoryUpward = currentScrollBottomOffset > 120;
+
+    if (!isUserViewingHistoryUpward || isMe) {
+        // Drop view target cleanly down to snap onto the incoming message node instantly
+        DOM.messagesContainer.scrollTop = DOM.messagesContainer.scrollHeight;
+    }
 }
 
 DOM.leaveChatBtn.addEventListener('click', () => {
@@ -935,6 +945,10 @@ const CURATED_NATIVE_EMOJIS_LIST = [
 ];
 
 // Tabs Switch Animation Controller Matrix
+// ==========================================================================
+// --- FIXED MULTI-TAB TRAWER UTILITIES CONTROLLER & GIF SEARCH ENGINE ---
+// ==========================================================================
+
 function toggleActiveTrayViewport(activeTabBtn, targetPaneView) {
     [UI.tabTriggerEmojis, UI.tabTriggerGifs, UI.tabTriggerStickers].forEach(btn => btn.classList.remove('active-tray-tab'));
     [UI.viewPaneEmojis, UI.viewPaneGifs, UI.viewPaneStickers].forEach(pane => pane.classList.add('hidden'));
@@ -957,8 +971,6 @@ UI.tabTriggerStickers.addEventListener('click', () => {
     toggleActiveTrayViewport(UI.tabTriggerStickers, UI.viewPaneStickers);
 });
 
-// --- FIXED MULTI-TAB SYSTEM CONTROLLER AND GIF ENGINE ---
-
 // Open/Close toggle button switcher with window state tracking handles
 UI.emojiDockTriggerBtn.addEventListener('click', (e) => {
     e.stopPropagation();
@@ -978,10 +990,10 @@ function closeMediaTrayDrawerPanel() {
     UI.mediaTrayDrawer.classList.remove('media-tray-drawer-open');
 }
 
-// 🛠️ CLOSE THE DRAWER WHEN CLICKING OUTSIDE BOUNDARIES
+// Fixed outside bounds click handler to safely close the drawer panel
 window.addEventListener('click', (e) => {
-    const isOpen = UI.mediaTrayDrawer.classList.contains('premium-whatsapp-dropdown-panel') || UI.mediaTrayDrawer.classList.contains('media-tray-drawer-open');
-    if (isOpen && !UI.mediaTrayDrawer.contains(e.target) && !UI.emojiDockTriggerBtn.contains(e.target)) {
+    const isDrawerOpen = UI.mediaTrayDrawer.classList.contains('media-tray-drawer-open');
+    if (isDrawerOpen && !UI.mediaTrayDrawer.contains(e.target) && !UI.emojiDockTriggerBtn.contains(e.target)) {
         closeMediaTrayDrawerPanel();
     }
 });
@@ -994,7 +1006,7 @@ function renderNativeEmojisGrid() {
         spanNode.className = 'emoji-tray-item-node';
         spanNode.innerText = emojiChar;
         spanNode.addEventListener('click', (e) => {
-            e.stopPropagation(); // 🛠️ Stops popup auto-closure to allow typing continuous arrays
+            e.stopPropagation(); // Stops popup auto-closure to allow typing continuous arrays
             const chatInputElement = document.getElementById('chat-input');
             chatInputElement.value += emojiChar;
             chatInputElement.focus();
