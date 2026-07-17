@@ -300,28 +300,27 @@ UI.feedbackSubmit.addEventListener('click', async () => {
 
 // --- 2. INLINE SMOOTH ACTIONS DRAWER REGISTRATION LOOP ---
 // --- RE-ENGINEERED WHATSAPP LOOK FLOATING CONTEXT MENU DESPATCH MATRIX ---
-function registerLongPressUserMeta(metaNode, messageSenderSig, messageSenderName) {
+// --- WHATSAPP LOOK SIDE-SNAP PANEL EVENT CONTROLLER ---
+function registerLongPressUserMeta(bubbleContainerNode, messageSenderSig, messageSenderName) {
     let pressTimer = null;
-    const bubbleWrapperNode = metaNode.parentNode;
-    const desktopHoverArrowTrigger = bubbleWrapperNode.querySelector('.msg-hover-context-trigger');
+    const desktopHoverArrowTrigger = bubbleContainerNode.querySelector('.msg-hover-context-trigger');
 
     const spawnFloatingPanel = (event) => {
         if (messageSenderSig === getOrCreateFingerprintToken()) return;
         event.preventDefault();
         event.stopPropagation();
 
-        // Clear any old active dropdown instances
+        // Clear previous open instances
         const activeExistingPanel = document.querySelector('.premium-whatsapp-dropdown-panel');
         if (activeExistingPanel) activeExistingPanel.remove();
 
         const floatingPanel = document.createElement('div');
         floatingPanel.className = 'premium-whatsapp-dropdown-panel';
         floatingPanel.innerHTML = `
-            <button class="dropdown-action-row-item dm-act">💬 Direct Message</button>
-            <button class="dropdown-action-row-item report-red rep-act">⚠️ Report User</button>
+            <button class="dropdown-action-row-item dm-act">💬 Message</button>
+            <button class="dropdown-action-row-item report-red rep-act">⚠️ Report</button>
         `;
 
-        // Wire click behaviors
         floatingPanel.querySelector('.dm-act').addEventListener('click', (e) => {
             e.stopPropagation();
             floatingPanel.remove();
@@ -336,21 +335,18 @@ function registerLongPressUserMeta(metaNode, messageSenderSig, messageSenderName
             executeInlineReportSubmission();
         });
 
-        // Inject the floating element directly into the message element's scope
-        bubbleWrapperNode.appendChild(floatingPanel);
-
-        // Position alignment adjustments natively beside text blocks
-        floatingPanel.style.bottom = "24px";
-        floatingPanel.style.left = "20px";
+        // Appends the menu side-by-side directly inside the target bubble row container
+        bubbleContainerNode.appendChild(floatingPanel);
     };
 
-    // Mobile/Tablet touch events track loops
-    metaNode.addEventListener('mousedown', (e) => { pressTimer = setTimeout(() => spawnFloatingPanel(e), 500); });
-    metaNode.addEventListener('mouseup', () => { clearTimeout(pressTimer); });
-    metaNode.addEventListener('touchstart', (e) => { pressTimer = setTimeout(() => spawnFloatingPanel(e), 500); });
-    metaNode.addEventListener('touchend', () => { clearTimeout(pressTimer); });
+    // Mobile / Tablet: Triggers when the user holds the message bubble
+    bubbleContainerNode.addEventListener('touchstart', (e) => { 
+        pressTimer = setTimeout(() => spawnFloatingPanel(e), 500); 
+    }, { passive: false });
+    bubbleContainerNode.addEventListener('touchend', () => { clearTimeout(pressTimer); });
+    bubbleContainerNode.addEventListener('touchmove', () => { clearTimeout(pressTimer); });
 
-    // Desktop hover arrow click attachment loop link hook
+    // Desktop: Triggers when clicking the clean hover arrow
     if (desktopHoverArrowTrigger) {
         desktopHoverArrowTrigger.addEventListener('click', (e) => spawnFloatingPanel(e));
     }
@@ -517,18 +513,19 @@ function displayMessage(msg) {
         bubbleContent = linkifyText(msg.text);
     }
 
-   msgWrapper.innerHTML = `
+    msgWrapper.innerHTML = `
         <div class="msg-meta" data-sig="${msg.senderSig}" data-name="${msg.sender}">
             ${isMe ? 'You (' + msg.sender + ')' : msg.sender}
         </div>
         <div class="msg-bubble-container">
             <div class="msg-bubble">${bubbleContent}</div>
-            <!-- Dynamic hover trigger icon element for desktops -->
-            ${!isMe ? '<div class="msg-hover-context-trigger">▼</div>' : ''}
+            ${!isMe ? '<button class="msg-hover-context-trigger">▼</button>' : ''}
         </div>
     `;
-    const metaNode = msgWrapper.querySelector('.msg-meta');
-    registerLongPressUserMeta(metaNode, msg.senderSig, msg.sender);
+
+    // 🛠️ ATTACH DIRECTLY TO CONTAINER INNER FOR PERFECT SIDE POSITIONING
+    const containerNode = msgWrapper.querySelector('.msg-bubble-container');
+    registerLongPressUserMeta(containerNode, msg.senderSig, msg.sender);
 
     if (isMe) {
         let burnTimer = null;

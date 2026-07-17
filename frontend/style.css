@@ -269,15 +269,26 @@ body:not(.light-theme) .pill-slider:before {
 }
 
 /* --- DYNAMIC SYMMETRIC INTERFACE ENVIRONMENTS --- */
-.app-viewport-integrated {
+.night-bg {
     display: flex;
+    flex-direction: column;
+    height: 100dvh; /* Force perfect mobile viewport matching */
     width: 100%;
-    height: calc(100vh - 90px);
-    position: relative;
+    overflow: hidden;
 }
 
-.app-header.hidden~.app-viewport-integrated {
-    height: 100vh;
+.app-viewport-integrated { 
+    flex: 1;
+    display: flex; 
+    flex-direction: column;
+    width: 100%; 
+    height: calc(100dvh - 90px); 
+    position: relative; 
+    overflow: hidden;
+}
+
+.app-header.hidden ~ .app-viewport-integrated {
+    height: 100dvh;
 }
 
 .view-panel-dashboard {
@@ -289,20 +300,21 @@ body:not(.light-theme) .pill-slider:before {
     overflow-y: auto;
 }
 
-.view-panel-chat {
-    width: 100%;
-    height: 100%;
-    display: flex;
-    background: var(--bg-primary);
+.view-panel-chat { 
+    width: 100%; 
+    height: 100%; 
+    display: flex; 
+    flex-direction: column;
+    overflow: hidden;
 }
 
-.chat-inner-workspace {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    height: 100%;
-    width: 100%;
-    justify-content: space-between;
+.chat-inner-workspace { 
+    flex: 1; 
+    display: flex; 
+    flex-direction: column; 
+    height: 100%; 
+    width: 100%; 
+    overflow: hidden;
 }
 
 .chat-header-pane {
@@ -321,17 +333,16 @@ body:not(.light-theme) .pill-slider:before {
 .chat-viewport-wrapper {
     flex: 1;
     width: 100%;
+    overflow-y: auto;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
     display: flex;
     flex-direction: column;
-    position: relative;
-    overflow: hidden;
 }
 
 /* 3. SCROLL FIX: ENSURE MESSAGE BLOCKS ALLOW TOUCH-MOVE CAPABILITIES PASS-THROUGH NATIVELY ON MOBILE DEVICES */
 .chat-messages-stream-integrated {
-    flex: 1;
-    overflow-y: auto;
-    padding: 24px 30px;
+    padding: 20px;
     display: flex;
     flex-direction: column;
     gap: 16px;
@@ -478,15 +489,13 @@ body:not(.light-theme) .pill-slider:before {
 }
 
 /* --- CHAT INPUT BAR DOCK --- */
-.chat-input-dock-integrated {
-    padding: 16px 24px;
-    background: var(--bg-secondary);
-    border-top: 1px solid var(--border-color);
-    display: flex;
-    align-items: center;
-    gap: 16px;
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
+.chat-input-dock-integrated { 
+    padding: 16px 20px; 
+    background: var(--bg-secondary); 
+    border-top: 1px solid var(--border-color); 
+    display: flex; 
+    align-items: center; 
+    gap: 12px; 
     width: 100%;
 }
 
@@ -1052,35 +1061,7 @@ body.light-theme .global-loader-glassmorphic {
     width: fit-content;
 }
 
-/* --- CHAT VIEWPORT VERTICAL SCROLL LOCK FIX --- */
-.chat-inner-workspace {
-    height: 100%;
-    width: 100%;
-    display: flex;
-    flex-direction: column;
-    overflow: hidden; /* Hard-locks the workspace boundary inside the viewport */
-}
 
-.chat-viewport-wrapper {
-    flex: 1;
-    width: 100%;
-    overflow-y: auto;
-    overflow-x: hidden;
-    position: relative;
-    display: flex;
-    flex-direction: column;
-}
-
-.chat-messages-stream-integrated {
-    width: 100%;
-    padding: 24px 30px;
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
-    /* Mobile scroll recovery pass-through */
-    touch-action: pan-y !important;
-    -webkit-overflow-scrolling: touch;
-}
 
 /* Allow touch events to slide through the structural bubble box layer natively */
 .msg-wrapper, .msg-bubble {
@@ -1110,51 +1091,61 @@ body.light-theme .global-loader-glassmorphic {
 }
 
 /* --- PROBLEM 2: FLOATING WHATSAPP-STYLE CONTEXT WINDOW SYSTEM --- */
+/* --- PREMIUM WHATSAPP SIDE-BY-SIDE DROPDOWN WINDOWS --- */
 .msg-bubble-container {
     position: relative;
     display: flex;
     align-items: center;
     width: 100%;
+    gap: 4px;
 }
-.incoming .msg-bubble-container { justify-content: flex-start; }
-.outgoing .msg-bubble-container { justify-content: flex-end; }
+.incoming .msg-bubble-container { flex-direction: row; }
+.outgoing .msg-bubble-container { flex-direction: row-reverse; }
 
-/* Desktop Hover Arrow Menu Controller Trigger */
+/* Clean, non-background flat arrow trigger button (Desktop Only) */
 .msg-hover-context-trigger {
-    width: 20px;
-    height: 20px;
-    background: var(--bg-secondary);
-    border: 1px solid var(--border-color);
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    background: transparent !important;
+    border: none !important;
     cursor: pointer;
     opacity: 0;
-    margin: 0 8px;
-    transition: opacity 150ms ease;
+    padding: 6px;
     color: var(--text-muted);
-    font-size: 0.7rem;
+    font-size: 0.65rem;
+    transition: opacity 150ms ease, color 150ms ease;
+    user-select: none;
 }
 .msg-wrapper:hover .msg-hover-context-trigger {
     opacity: 1;
 }
+.msg-hover-context-trigger:hover {
+    color: var(--text-main);
+}
 
-/* Floating Action Panel Shell Casing */
+/* Float Menu Container forced inline side-by-side */
 .premium-whatsapp-dropdown-panel {
     position: absolute;
     background: var(--bg-secondary);
     border: 1px solid var(--border-color);
     border-radius: 12px;
-    padding: 6px;
-    min-width: 120px;
-    box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+    padding: 4px;
+    min-width: 140px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.25);
     z-index: 1000;
     display: flex;
     flex-direction: column;
     gap: 2px;
-    backdrop-filter: blur(20px);
-    animation: scalePopIn 150ms cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+    backdrop-filter: blur(25px);
+    -webkit-backdrop-filter: blur(25px);
+    animation: scalePopIn 120ms cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}
+
+/* Open Panel exactly to the right of incoming messages, or left of outgoing messages */
+.incoming .premium-whatsapp-dropdown-panel { left: calc(100% + 8px); top: 0; }
+.outgoing .premium-whatsapp-dropdown-panel { right: calc(100% + 8px); top: 0; }
+
+/* Hide drop-down arrow handles entirely on touch devices natively */
+@media (pointer: coarse) {
+    .msg-hover-context-trigger { display: none !important; }
 }
 @keyframes scalePopIn {
     from { opacity: 0; transform: scale(0.92); }
