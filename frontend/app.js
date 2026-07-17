@@ -957,52 +957,78 @@ UI.tabTriggerStickers.addEventListener('click', () => {
     toggleActiveTrayViewport(UI.tabTriggerStickers, UI.viewPaneStickers);
 });
 
-// Emojis: Click target to insert instantly at current typing position text index
+// --- FIXED MULTI-TAB SYSTEM CONTROLLER AND GIF ENGINE ---
+
+// Open/Close toggle button switcher with window state tracking handles
+UI.emojiDockTriggerBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    const isHidden = UI.mediaTrayDrawer.classList.contains('media-tray-drawer-hidden');
+    if (isHidden) {
+        UI.mediaTrayDrawer.classList.remove('media-tray-drawer-hidden');
+        UI.mediaTrayDrawer.classList.add('media-tray-drawer-open');
+        // Pre-fill default view grid if empty
+        if (UI.emojisGridTarget.children.length === 0) renderNativeEmojisGrid();
+    } else {
+        closeMediaTrayDrawerPanel();
+    }
+});
+
+function closeMediaTrayDrawerPanel() {
+    UI.mediaTrayDrawer.classList.add('media-tray-drawer-hidden');
+    UI.mediaTrayDrawer.classList.remove('media-tray-drawer-open');
+}
+
+// 🛠️ CLOSE THE DRAWER WHEN CLICKING OUTSIDE BOUNDARIES
+window.addEventListener('click', (e) => {
+    const isOpen = UI.mediaTrayDrawer.classList.contains('premium-whatsapp-dropdown-panel') || UI.mediaTrayDrawer.classList.contains('media-tray-drawer-open');
+    if (isOpen && !UI.mediaTrayDrawer.contains(e.target) && !UI.emojiDockTriggerBtn.contains(e.target)) {
+        closeMediaTrayDrawerPanel();
+    }
+});
+
+// Emojis Selection Render - Fixed text insertions retaining workspace visibility open state
 function renderNativeEmojisGrid() {
     UI.emojisGridTarget.innerHTML = '';
     CURATED_NATIVE_EMOJIS_LIST.forEach(emojiChar => {
         const spanNode = document.createElement('div');
         spanNode.className = 'emoji-tray-item-node';
         spanNode.innerText = emojiChar;
-        spanNode.addEventListener('click', () => {
+        spanNode.addEventListener('click', (e) => {
+            e.stopPropagation(); // 🛠️ Stops popup auto-closure to allow typing continuous arrays
             const chatInputElement = document.getElementById('chat-input');
             chatInputElement.value += emojiChar;
             chatInputElement.focus();
-            // Automatically fire grow sizing triggers on input area
             chatInputElement.dispatchEvent(new Event('input'));
         });
         UI.emojisGridTarget.appendChild(spanNode);
     });
 }
 
-// GIFs: Dynamic integration with public Tenor API
+// GIFs Fetch Engine Tracker via Cross-Origin Safe Reliable Proxy Array Feed
 async function fetchTrendingTenorGifs(searchQuery = "") {
     UI.gifsRowTarget.innerHTML = '<div class="loader-title-text">Syncing frames...</div>';
     
-    // Clean public anonymous endpoint credentials parameters
-    const apiKey = "LIVDSRZULELA"; 
-    const limit = 12;
-    let endpoint = `https://g.tenor.com/v1/trending?key=${apiKey}&limit=${limit}&media_filter=minimal`;
-    
-    if (searchQuery.trim() !== "") {
-        endpoint = `https://g.tenor.com/v1/search?q=${encodeWriteStream(searchQuery)}&key=${apiKey}&limit=${limit}&media_filter=minimal`;
-    }
+    // Stable open API access endpoint fallback link path
+    const fallbackTerm = searchQuery.trim() || "funny cat";
+    const endpoint = `https://api.giphy.com/v1/gifs/search?q=${encodeURIComponent(fallbackTerm)}&api_key=dc6zaTOxFJmzC&limit=12&rating=g`;
 
     try {
         const res = await fetch(endpoint);
         const data = await res.json();
         UI.gifsRowTarget.innerHTML = '';
 
-        if (!data.results || data.results.length === 0) {
+        if (!data.data || data.data.length === 0) {
             UI.gifsRowTarget.innerHTML = '<div class="loader-title-text">No matching GIFs found.</div>';
             return;
         }
 
-        data.results.forEach(item => {
-            const gifUrlUrl = item.media[0].minimal.url;
+        data.data.forEach(item => {
+            const highResUrl = item.images.original.url;
+            const previewThumb = item.images.fixed_height_small.url;
+            
             const imgNode = document.createElement('img');
             imgNode.className = 'tray-gif-thumbnail-node';
-            imgNode.src = item.media[0].minimal.gif; // Low res preview frame thumb
+            imgNode.src = previewThumb;
             
             imgNode.addEventListener('click', () => {
                 if (currentRoomCode && socket) {
@@ -1011,7 +1037,7 @@ async function fetchTrendingTenorGifs(searchQuery = "") {
                         roomCode: currentRoomCode,
                         sender: currentUser.alias,
                         senderSig: hashToken,
-                        text: gifUrlUrl, // Dispatches high res animated frame destination
+                        text: highResUrl,
                         type: 'gif'
                     });
                 }
