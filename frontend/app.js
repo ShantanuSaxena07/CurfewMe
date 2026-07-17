@@ -634,17 +634,21 @@ function displayMessage(msg) {
         msgWrapper.addEventListener('touchstart', startChargingBurn, { passive: false });
         msgWrapper.addEventListener('touchend', clearChargingBurn);
     }
+    // Append the newly rendered bubble node into the thread list
     DOM.messagesContainer.appendChild(msgWrapper);
 
-    // --- SMART CONDITIONAL AUTO-SCROLL ALGORITHM ---
-    // Calculate if the user is currently looking at history threads upward
-    // 120px threshold margin allows comfortable alignment tolerance parameters
-    const currentScrollBottomOffset = DOM.messagesContainer.scrollHeight - DOM.messagesContainer.scrollTop - DOM.messagesContainer.clientHeight;
-    const isUserViewingHistoryUpward = currentScrollBottomOffset > 120;
+    // 🛠️ CORRECTED SMART SCROLL TARGET: Target the outer viewport wrapper frame shell
+    const scrollViewportShell = document.querySelector('.chat-viewport-wrapper');
+    
+    if (scrollViewportShell) {
+        // Calculate current bottom offset metric targets accurately 
+        const currentScrollBottomOffset = scrollViewportShell.scrollHeight - scrollViewportShell.scrollTop - scrollViewportShell.clientHeight;
+        const isUserViewingHistoryUpward = currentScrollBottomOffset > 150;
 
-    if (!isUserViewingHistoryUpward || isMe) {
-        // Drop view target cleanly down to snap onto the incoming message node instantly
-        DOM.messagesContainer.scrollTop = DOM.messagesContainer.scrollHeight;
+        if (!isUserViewingHistoryUpward || isMe) {
+            // Push view layout down flush to show the newest chat bubble instantly
+            scrollViewportShell.scrollTop = scrollViewportShell.scrollHeight;
+        }
     }
 }
 
@@ -992,9 +996,18 @@ function closeMediaTrayDrawerPanel() {
 
 // Fixed outside bounds click handler to safely close the drawer panel
 window.addEventListener('click', (e) => {
-    const isDrawerOpen = UI.mediaTrayDrawer.classList.contains('media-tray-drawer-open');
-    if (isDrawerOpen && !UI.mediaTrayDrawer.contains(e.target) && !UI.emojiDockTriggerBtn.contains(e.target)) {
-        closeMediaTrayDrawerPanel();
+    // Target the tray drawer container directly
+    const trayPanelNode = UI.mediaTrayDrawer;
+    
+    // Guard clause: Only trigger if the drawer panel is actually visible on screen
+    if (trayPanelNode && trayPanelNode.classList.contains('media-tray-drawer-open')) {
+        // Safely evaluate if the clicked element lies outside both the drawer panel and trigger button bounds
+        const clickedOutsideDrawer = !trayPanelNode.contains(e.target);
+        const clickedOutsideTriggerBtn = !UI.emojiDockTriggerBtn.contains(e.target);
+        
+        if (clickedOutsideDrawer && clickedOutsideTriggerBtn) {
+            closeMediaTrayDrawerPanel();
+        }
     }
 });
 
