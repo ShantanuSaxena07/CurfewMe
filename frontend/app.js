@@ -40,7 +40,11 @@ const UI = {
     feedbackModal: document.getElementById('feedback-modal'),
     feedbackText: document.getElementById('feedback-textbox-area'),
     feedbackCancel: document.getElementById('feedback-cancel-btn'),
-    feedbackSubmit: document.getElementById('feedback-submit-btn')
+    feedbackSubmit: document.getElementById('feedback-submit-btn'),
+     // Restored Democratic Rule Modal Links Matrices
+    rulesReportModal: document.getElementById('report-moderation-rules-modal'),
+    rulesReportCancel: document.getElementById('rules-report-cancel-btn'),
+    rulesReportConfirm: document.getElementById('rules-report-confirm-btn')
 };
 
 const DOM = {
@@ -73,10 +77,6 @@ const DOM = {
     fileInput: document.getElementById('file-input'),
     modalErrorText: document.getElementById('modal-error-text'),
     themeToggleCheckbox: document.getElementById('theme-toggle-checkbox'),
-    // Restored Democratic Rule Modal Links Matrices
-    rulesReportModal: document.getElementById('report-moderation-rules-modal'),
-    rulesReportCancel: document.getElementById('rules-report-cancel-btn'),
-    rulesReportConfirm: document.getElementById('rules-report-confirm-btn'),
     leaveConfirmModal: document.getElementById('leave-confirm-modal'),
     leaveModalCancel: document.getElementById('leave-modal-cancel'),
     leaveModalConfirm: document.getElementById('leave-modal-confirm')
