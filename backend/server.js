@@ -23,7 +23,7 @@ const PORT = process.env.PORT || 8080;
 
 const OPEN_HOUR = 19;  
 const CLOSE_HOUR = 4;  
-const IS_DEV_MODE = true; 
+const IS_DEV_MODE = false; 
 
 function checkCurfewStatus() {
     if (IS_DEV_MODE) return true;

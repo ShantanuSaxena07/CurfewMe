@@ -6,7 +6,7 @@ const SERVER_URL = window.location.hostname === "localhost" || window.location.h
     ? "http://localhost:8080"
     : "https://curfewme-backend.onrender.com";
 
-const IS_DEV_MODE = true;
+const IS_DEV_MODE = false;
 
 let socket = null;
 let currentRoomCode = null;
@@ -855,12 +855,6 @@ UI.emojiDockTriggerBtn.addEventListener('click', (e) => {
     UI.mediaTrayDrawer.classList.toggle('media-tray-drawer-open');
 });
 
-// Hide drawer tray instantly if input focus is activated on mobile keyboards
-document.getElementById('chat-input').addEventListener('focus', () => {
-    UI.mediaTrayDrawer.classList.add('media-tray-drawer-hidden');
-    UI.mediaTrayDrawer.classList.remove('media-tray-drawer-open');
-});
-
 // Trigger hidden file uploader
 UI.stickerUploadBtn.addEventListener('click', () => UI.stickerHiddenInput.click());
 
@@ -1020,7 +1014,7 @@ document.addEventListener('click', (e) => {
     else if (liveTrayDrawer.classList.contains('media-tray-drawer-open')) {
         const clickedInsideDrawerLayout = liveTrayDrawer.contains(e.target);
         
-        // 🛠️ FIX: Only close if the click is outside the panel AND not on the text input area
+        // Only close if the click is outside the drawer panel AND not on the text input area
         if (!clickedInsideDrawerLayout && e.target.id !== 'chat-input') {
             closeMediaTrayDrawerPanel();
         }
@@ -1035,28 +1029,31 @@ function renderNativeEmojisGrid() {
         spanNode.className = 'emoji-tray-item-node';
         spanNode.innerText = emojiChar;
         spanNode.addEventListener('click', (e) => {
-            e.stopPropagation(); // Stops popup auto-closure to allow typing continuous arrays
+            e.stopPropagation(); // Prevents layout bubble triggers from shutting down the panel
+            e.preventDefault();
             
             const chatInputElement = document.getElementById('chat-input');
             
             // Insert emoji character directly at the end of text string
             chatInputElement.value += emojiChar;
             
-            // Retain absolute target focus without letting the keyboard layout hide the menu drawer
-            chatInputElement.focus();
-            chatInputElement.dispatchEvent(new Event('input'));
+            // Retain clear active cursor input without triggering global panel dismissals
+            setTimeout(() => {
+                chatInputElement.focus();
+                chatInputElement.dispatchEvent(new Event('input'));
+            }, 0);
         });
         UI.emojisGridTarget.appendChild(spanNode);
     });
 }
 
-// GIFs Fetch Engine Tracker via Verified Functional Production Web API Token Key
+// GIFs Fetch Engine Tracker via Verified Free Public Tenor V1 Search Protocol
 async function fetchTrendingTenorGifs(searchQuery = "") {
     UI.gifsRowTarget.innerHTML = '<div class="loader-title-text">Syncing frames...</div>';
     
     const fallbackTerm = searchQuery.trim() || "trending";
-    // 🛠️ FIX 2: Uses a verified production-safe public key to resolve the 403 server lockout
-    const endpoint = `https://api.giphy.com/v1/gifs/search?q=${encodeURIComponent(fallbackTerm)}&api_key=cw5wv5tZ483aWgdEuxZz528185I42X6G&limit=12&rating=g`;
+    // Using Tenor's permanent public anonymous key layout that bypasses 401/403 origin blocks completely
+    const endpoint = `https://g.tenor.com/v1/search?q=${encodeURIComponent(fallbackTerm)}&key=LIVDSRZULELA&limit=12&media_filter=minimal`;
 
     try {
         const res = await fetch(endpoint);
@@ -1065,14 +1062,14 @@ async function fetchTrendingTenorGifs(searchQuery = "") {
         const data = await res.json();
         UI.gifsRowTarget.innerHTML = '';
 
-        if (!data.data || data.data.length === 0) {
+        if (!data.results || data.results.length === 0) {
             UI.gifsRowTarget.innerHTML = '<div class="loader-title-text">No matching GIFs found.</div>';
             return;
         }
 
-        data.data.forEach(item => {
-            const highResUrl = item.images.original.url;
-            const previewThumb = item.images.fixed_height_small.url;
+        data.results.forEach(item => {
+            const highResUrl = item.media[0].minimal.url;
+            const previewThumb = item.media[0].minimal.gif;
             
             const imgNode = document.createElement('img');
             imgNode.className = 'tray-gif-thumbnail-node';
