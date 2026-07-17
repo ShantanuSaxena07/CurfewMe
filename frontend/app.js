@@ -44,7 +44,25 @@ const UI = {
      // Restored Democratic Rule Modal Links Matrices
     rulesReportModal: document.getElementById('report-moderation-rules-modal'),
     rulesReportCancel: document.getElementById('rules-report-cancel-btn'),
-    rulesReportConfirm: document.getElementById('rules-report-confirm-btn')
+    rulesReportConfirm: document.getElementById('rules-report-confirm-btn'),
+    // Media Tray Controls
+    emojiDockTriggerBtn: document.getElementById('emoji-dock-trigger-btn'),
+    mediaTrayDrawer: document.getElementById('media-tray-drawer'),
+    stickerUploadBtn: document.getElementById('sticker-upload-trigger-btn'),
+    stickerHiddenInput: document.getElementById('sticker-file-hidden-input'),
+    stickersRenderTarget: document.getElementById('stickers-render-target-row'),
+    // Tab View Triggers
+    tabTriggerEmojis: document.getElementById('tray-tab-trigger-emojis'),
+    tabTriggerGifs: document.getElementById('tray-tab-trigger-gifs'),
+    tabTriggerStickers: document.getElementById('tray-tab-trigger-stickers'),
+    // View Blocks
+    viewPaneEmojis: document.getElementById('tray-emojis-view'),
+    viewPaneGifs: document.getElementById('tray-gifs-view'),
+    viewPaneStickers: document.getElementById('tray-stickers-view'),
+    // Search Targets
+    emojisGridTarget: document.getElementById('emojis-render-target-grid'),
+    gifsRowTarget: document.getElementById('gifs-render-target-row'),
+    gifInputQuery: document.getElementById('gif-search-query-input')
 };
 
 const DOM = {
@@ -549,19 +567,46 @@ function displayMessage(msg) {
     let bubbleContent = '';
     if (msg.type === 'image') {
         bubbleContent = `<img src="${msg.text}" class="msg-media image-message" alt="Attachment" style="display: block; max-width: 100%; height: auto; border-radius: 8px;">`;
+    } else if (msg.type === 'sticker') {
+        // 🛠️ WHATSAPP STICKER INTERCEPT: Render image standalone with a title hint to save it
+        msgWrapper.className += ' msg-wrapper-sticker';
+        bubbleContent = `<img src="${msg.text}" class="sticker-chat-render-node" title="Tap to save to favorites stack" alt="Sticker Asset">`;
+    } else if (msg.type === 'sticker') {
+        msgWrapper.className += ' msg-wrapper-sticker';
+        bubbleContent = `<img src="${msg.text}" class="sticker-chat-render-node" title="Tap to save to favorites stack" alt="Sticker Asset">`;
+    } else if (msg.type === 'gif') {
+        // 🛠️ GIF CHAT INTERCEPT: Render animated image frame correctly
+        bubbleContent = `<img src="${msg.text}" class="msg-media gif-message" alt="Animated GIF Node">`;
     } else {
         bubbleContent = linkifyText(msg.text);
     }
 
-    msgWrapper.innerHTML = `
-        <div class="msg-meta" data-sig="${msg.senderSig}" data-name="${msg.sender}">
-            ${isMe ? 'You (' + msg.sender + ')' : msg.sender}
-        </div>
-        <div class="msg-bubble-container">
-            <div class="msg-bubble">${bubbleContent}</div>
-            ${!isMe ? '<button class="msg-hover-context-trigger">▼</button>' : ''}
-        </div>
-    `;
+    // Adjust markup wrappers if type handles a standalone sticker frame asset
+    if (msg.type === 'sticker') {
+        msgWrapper.innerHTML = `
+            <div class="msg-meta" data-sig="${msg.senderSig}" data-name="${msg.sender}">
+                ${isMe ? 'You' : msg.sender}
+            </div>
+            <div class="msg-bubble-container">
+                ${bubbleContent}
+            </div>
+        `;
+        
+        // Let any active user tap on someone else's sticker to save it to their local collection instantly
+        msgWrapper.querySelector('.sticker-chat-render-node').addEventListener('click', () => {
+            saveStickerToUserCollection(msg.text);
+        });
+    } else {
+        msgWrapper.innerHTML = `
+            <div class="msg-meta" data-sig="${msg.senderSig}" data-name="${msg.sender}">
+                ${isMe ? 'You (' + msg.sender + ')' : msg.sender}
+            </div>
+            <div class="msg-bubble-container">
+                <div class="msg-bubble">${bubbleContent}</div>
+                ${!isMe ? '<button class="msg-hover-context-trigger">▼</button>' : ''}
+            </div>
+        `;
+    }
 
     // 🛠️ ATTACH DIRECTLY TO CONTAINER INNER FOR PERFECT SIDE POSITIONING
     const containerNode = msgWrapper.querySelector('.msg-bubble-container');
@@ -778,3 +823,214 @@ DOM.chatInput.addEventListener('keypress', (e) => { if (e.key === 'Enter' && !e.
 initializeApplicationTheme();
 setInterval(() => { monitorCurfew(); checkSystemMeltdownWarning(); }, 1000);
 monitorCurfew();
+
+// --- WHATSAPP-STYLE PERSISTENT USER STICKER TRAY PACK MATRIX ---
+
+// High-fidelity open-source vector graphics used as automatic global starter pack icons
+const GLOBAL_STARTER_STICKERS_PACK = [
+    "https://api.dicebear.com/7.x/bottts/svg?seed=CurfewOne",
+    "https://api.dicebear.com/7.x/bottts/svg?seed=CurfewTwo",
+    "https://api.dicebear.com/7.x/bottts/svg?seed=CurfewThree",
+    "https://api.dicebear.com/7.x/bottts/svg?seed=CurfewFour"
+];
+
+// Open/Close toggle switcher
+UI.emojiDockTriggerBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    UI.mediaTrayDrawer.classList.toggle('media-tray-drawer-hidden');
+    UI.mediaTrayDrawer.classList.toggle('media-tray-drawer-open');
+});
+
+// Hide drawer tray instantly if input focus is activated on mobile keyboards
+document.getElementById('chat-input').addEventListener('focus', () => {
+    UI.mediaTrayDrawer.classList.add('media-tray-drawer-hidden');
+    UI.mediaTrayDrawer.classList.remove('media-tray-drawer-open');
+});
+
+// Trigger hidden file uploader
+UI.stickerUploadBtn.addEventListener('click', () => UI.stickerHiddenInput.click());
+
+UI.stickerHiddenInput.addEventListener('change', (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = function(event) {
+        saveStickerToUserCollection(event.target.result, true);
+    };
+    reader.readAsDataURL(file);
+    UI.stickerHiddenInput.value = ''; // Reset input link target
+});
+
+// Save sticker string down into user browser storage mapping
+function saveStickerToUserCollection(stickerDataString, autoTransmit = false) {
+    let localSavedCollection = JSON.parse(localStorage.getItem('curfew_user_stickers_stack')) || [];
+    
+    // Remove if item duplicate exists to reposition it to the front of recently used lists
+    const index = localSavedCollection.indexOf(stickerDataString);
+    if (index > -1) localSavedCollection.splice(index, 1);
+    
+    localSavedCollection.unshift(stickerDataString);
+    localStorage.setItem('curfew_user_stickers_stack', JSON.stringify(localSavedCollection));
+    
+    renderStickerTrayThumbnails();
+
+    if (autoTransmit && currentRoomCode && socket) {
+        transmitStickerMessage(stickerDataString);
+    } else if (!autoTransmit) {
+        alert("Sticker added successfully to your Recently Used tray!");
+    }
+}
+
+// Render out layout grid images elements
+function renderStickerTrayThumbnails() {
+    UI.stickersRenderTarget.innerHTML = '';
+    let savedCollection = JSON.parse(localStorage.getItem('curfew_user_stickers_stack')) || [];
+    
+    // Fallback: Bind standard global pack icons if personal collection storage index lists are empty
+    let displayArray = savedCollection.length > 0 ? savedCollection : GLOBAL_STARTER_STICKERS_PACK;
+
+    displayArray.forEach(stickerAssetString => {
+        const imgElement = document.createElement('img');
+        imgElement.className = 'tray-sticker-thumbnail-item';
+        imgElement.src = stickerAssetString;
+        
+        imgElement.addEventListener('click', () => {
+            if (currentRoomCode && socket) {
+                transmitStickerMessage(stickerAssetString);
+                // Shift recently clicked item arrays positioning handles to top index priority
+                saveStickerToUserCollection(stickerAssetString, false);
+            }
+        });
+        UI.stickersRenderTarget.appendChild(imgElement);
+    });
+}
+
+function transmitStickerMessage(assetUrlString) {
+    const clientSigHash = getOrCreateFingerprintToken();
+    socket.emit('send-message', {
+        roomCode: currentRoomCode,
+        sender: currentUser.alias,
+        senderSig: clientSigHash,
+        text: assetUrlString,
+        type: 'sticker'
+    });
+}
+
+// Make sure view layer fills arrays templates smoothly upon initial loading cycles
+renderStickerTrayThumbnails();
+
+// --- DYNAMIC MULTI-TAB TRAWER UTILITIES CONTROLLER HUB ---
+
+const CURATED_NATIVE_EMOJIS_LIST = [
+    "😀","😃","😄","😁","😆","😅","😂","🤣","😊","😇","🙂","🙃","😉","😌","😍","🥰","😘","😗","😙","😚",
+    "😋","😛","😝","😜","🤪","🤨","🧐","🤓","😎","🤩","🥳","😏","😒","😞","😔","😟","😕","🙁","☹️","😣",
+    "😖","😫","😩","🥺","😢","😭","😮‍💨","😤","😠","😡","🤬","🤯","😳","🥵","🥶","😱","😨","😰","😥","😓",
+    "🤗","🤔","🤭","🤫","🤥","😶","😐","😑","😬","🙄","😯","😦","😧","😮","😲","🥱","😴","🤤","😪","😵",
+    "🤐","🥴","🤢","🤮","🤧","😷","🤒","🤕","🤑","🤠","😈","👿","👹","👺","🤡","💩","👻","💀","☠️","👽",
+    "👾","🤖","🎃","😺","😸","😹","😻","😼","😽","🙀","😾","👋","🤚","🖐️","✋","🖖","👌","🤌","🤏","✌️",
+    "🤞","🤟","🤘","🤙","👈","👉","👆","🖕","👇","☝️","👍","👎","✊","👊","🤛","🤜","👏","🙌","👐","🤲",
+    "🤝","🙏","✍️","💅","🤳","💪","🦾","🦿","🦵","🦶","👂","🦻","👃","🧠","🫀","🫁","🦷","🦴","👀","👁️",
+    "👅","👄","💋","🩸"
+];
+
+// Tabs Switch Animation Controller Matrix
+function toggleActiveTrayViewport(activeTabBtn, targetPaneView) {
+    [UI.tabTriggerEmojis, UI.tabTriggerGifs, UI.tabTriggerStickers].forEach(btn => btn.classList.remove('active-tray-tab'));
+    [UI.viewPaneEmojis, UI.viewPaneGifs, UI.viewPaneStickers].forEach(pane => pane.classList.add('hidden'));
+    
+    activeTabBtn.classList.add('active-tray-tab');
+    targetPaneView.classList.remove('hidden');
+}
+
+UI.tabTriggerEmojis.addEventListener('click', () => {
+    toggleActiveTrayViewport(UI.tabTriggerEmojis, UI.viewPaneEmojis);
+    if (UI.emojisGridTarget.children.length === 0) renderNativeEmojisGrid();
+});
+
+UI.tabTriggerGifs.addEventListener('click', () => {
+    toggleActiveTrayViewport(UI.tabTriggerGifs, UI.viewPaneGifs);
+    if (UI.gifsRowTarget.children.length === 0) fetchTrendingTenorGifs();
+});
+
+UI.tabTriggerStickers.addEventListener('click', () => {
+    toggleActiveTrayViewport(UI.tabTriggerStickers, UI.viewPaneStickers);
+});
+
+// Emojis: Click target to insert instantly at current typing position text index
+function renderNativeEmojisGrid() {
+    UI.emojisGridTarget.innerHTML = '';
+    CURATED_NATIVE_EMOJIS_LIST.forEach(emojiChar => {
+        const spanNode = document.createElement('div');
+        spanNode.className = 'emoji-tray-item-node';
+        spanNode.innerText = emojiChar;
+        spanNode.addEventListener('click', () => {
+            const chatInputElement = document.getElementById('chat-input');
+            chatInputElement.value += emojiChar;
+            chatInputElement.focus();
+            // Automatically fire grow sizing triggers on input area
+            chatInputElement.dispatchEvent(new Event('input'));
+        });
+        UI.emojisGridTarget.appendChild(spanNode);
+    });
+}
+
+// GIFs: Dynamic integration with public Tenor API
+async function fetchTrendingTenorGifs(searchQuery = "") {
+    UI.gifsRowTarget.innerHTML = '<div class="loader-title-text">Syncing frames...</div>';
+    
+    // Clean public anonymous endpoint credentials parameters
+    const apiKey = "LIVDSRZULELA"; 
+    const limit = 12;
+    let endpoint = `https://g.tenor.com/v1/trending?key=${apiKey}&limit=${limit}&media_filter=minimal`;
+    
+    if (searchQuery.trim() !== "") {
+        endpoint = `https://g.tenor.com/v1/search?q=${encodeWriteStream(searchQuery)}&key=${apiKey}&limit=${limit}&media_filter=minimal`;
+    }
+
+    try {
+        const res = await fetch(endpoint);
+        const data = await res.json();
+        UI.gifsRowTarget.innerHTML = '';
+
+        if (!data.results || data.results.length === 0) {
+            UI.gifsRowTarget.innerHTML = '<div class="loader-title-text">No matching GIFs found.</div>';
+            return;
+        }
+
+        data.results.forEach(item => {
+            const gifUrlUrl = item.media[0].minimal.url;
+            const imgNode = document.createElement('img');
+            imgNode.className = 'tray-gif-thumbnail-node';
+            imgNode.src = item.media[0].minimal.gif; // Low res preview frame thumb
+            
+            imgNode.addEventListener('click', () => {
+                if (currentRoomCode && socket) {
+                    const hashToken = getOrCreateFingerprintToken();
+                    socket.emit('send-message', {
+                        roomCode: currentRoomCode,
+                        sender: currentUser.alias,
+                        senderSig: hashToken,
+                        text: gifUrlUrl, // Dispatches high res animated frame destination
+                        type: 'gif'
+                    });
+                }
+            });
+            UI.gifsRowTarget.appendChild(imgNode);
+        });
+    } catch(err) {
+        UI.gifsRowTarget.innerHTML = '<div class="loader-title-text">GIF Pipeline connectivity offline.</div>';
+    }
+}
+
+// Debounce listener tracking text entries within GIF search panel input field
+let searchInputTimeoutDebounce = null;
+UI.gifInputQuery.addEventListener('input', (e) => {
+    clearTimeout(searchInputTimeoutDebounce);
+    searchInputTimeoutDebounce = setTimeout(() => {
+        fetchTrendingTenorGifs(e.target.value);
+    }, 400);
+});
+
+function encodeWriteStream(str) { return encodeURIComponent(trimStringSpaces(str)); }
+function trimStringSpaces(str) { return str.trim(); }
