@@ -975,37 +975,52 @@ UI.tabTriggerStickers.addEventListener('click', () => {
     toggleActiveTrayViewport(UI.tabTriggerStickers, UI.viewPaneStickers);
 });
 
-// Open/Close toggle button switcher with window state tracking handles
-UI.emojiDockTriggerBtn.addEventListener('click', (e) => {
-    e.stopPropagation();
-    const isHidden = UI.mediaTrayDrawer.classList.contains('media-tray-drawer-hidden');
-    if (isHidden) {
-        UI.mediaTrayDrawer.classList.remove('media-tray-drawer-hidden');
-        UI.mediaTrayDrawer.classList.add('media-tray-drawer-open');
-        // Pre-fill default view grid if empty
-        if (UI.emojisGridTarget.children.length === 0) renderNativeEmojisGrid();
-    } else {
-        closeMediaTrayDrawerPanel();
-    }
-});
+// ==========================================================================
+// --- GUARANTEED DYNAMIC MULTI-TAB PANEL EVENT ARCHITECTURE ---
+// ==========================================================================
 
-function closeMediaTrayDrawerPanel() {
-    UI.mediaTrayDrawer.classList.add('media-tray-drawer-hidden');
-    UI.mediaTrayDrawer.classList.remove('media-tray-drawer-open');
+function getLiveMediaTrayNode() {
+    return document.getElementById('media-tray-drawer');
 }
 
-// Fixed outside bounds click handler to safely close the drawer panel
-window.addEventListener('click', (e) => {
-    // Target the tray drawer container directly
-    const trayPanelNode = UI.mediaTrayDrawer;
+function closeMediaTrayDrawerPanel() {
+    const liveTrayDrawer = getLiveMediaTrayNode();
+    if (liveTrayDrawer) {
+        liveTrayDrawer.classList.add('media-tray-drawer-hidden');
+        liveTrayDrawer.classList.remove('media-tray-drawer-open');
+    }
+}
+
+// Main execution click hub mapped safely to active dynamic DOM nodes
+document.addEventListener('click', (e) => {
+    const liveEmojiTriggerBtn = document.getElementById('emoji-dock-trigger-btn');
+    const liveTrayDrawer = getLiveMediaTrayNode();
     
-    // Guard clause: Only trigger if the drawer panel is actually visible on screen
-    if (trayPanelNode && trayPanelNode.classList.contains('media-tray-drawer-open')) {
-        // Safely evaluate if the clicked element lies outside both the drawer panel and trigger button bounds
-        const clickedOutsideDrawer = !trayPanelNode.contains(e.target);
-        const clickedOutsideTriggerBtn = !UI.emojiDockTriggerBtn.contains(e.target);
+    if (!liveEmojiTriggerBtn || !liveTrayDrawer) return;
+
+    // A: Check if the user clicked the active Emoji Trigger Switch directly
+    if (liveEmojiTriggerBtn.contains(e.target)) {
+        e.stopPropagation();
         
-        if (clickedOutsideDrawer && clickedOutsideTriggerBtn) {
+        const isHidden = liveTrayDrawer.classList.contains('media-tray-drawer-hidden');
+        if (isHidden) {
+            liveTrayDrawer.classList.remove('media-tray-drawer-hidden');
+            liveTrayDrawer.classList.add('media-tray-drawer-open');
+            
+            const liveGridContainer = document.getElementById('emojis-render-target-grid');
+            if (liveGridContainer && liveGridContainer.children.length === 0) {
+                renderNativeEmojisGrid();
+            }
+        } else {
+            closeMediaTrayDrawerPanel();
+        }
+    }
+    
+    // B: Dynamic outside bounds click auto-dismiss handler pipeline
+    else if (liveTrayDrawer.classList.contains('media-tray-drawer-open')) {
+        const clickedInsideDrawerLayout = liveTrayDrawer.contains(e.target);
+        
+        if (!clickedInsideDrawerLayout) {
             closeMediaTrayDrawerPanel();
         }
     }
@@ -1033,7 +1048,6 @@ function renderNativeEmojisGrid() {
 async function fetchTrendingTenorGifs(searchQuery = "") {
     UI.gifsRowTarget.innerHTML = '<div class="loader-title-text">Syncing frames...</div>';
     
-    // Stable open API access endpoint fallback link path
     const fallbackTerm = searchQuery.trim() || "funny cat";
     const endpoint = `https://api.giphy.com/v1/gifs/search?q=${encodeURIComponent(fallbackTerm)}&api_key=dc6zaTOxFJmzC&limit=12&rating=g`;
 
